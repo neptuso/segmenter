@@ -18,18 +18,12 @@
 
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
-
-    <!-- More Scripts -->
-    @yield ('header_scripts')
-    
 </head>
 <body>
-    @yield('divs4content')
     <div id="app">
         <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
             <div class="container">
-		@include('flash::message')
-                <a class="navbar-brand text-uppercase" href="{{ url('/') }}">
+                <a class="navbar-brand" href="{{ url('/') }}">
                     {{ config('app.name', 'Laravel') }}
                 </a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
@@ -39,11 +33,7 @@
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav mr-auto">
-			<li><a href="{{ url('/users') }}"> Users </a> </li>
-			<li><a href="{{ url('/listado') }}"> Listado </a> </li>
-			<li><a href="{{ url('/provs') }}"> Provincias </a> </li>
-			<li><a href="{{ url('/segmentador') }}"> Cargar </a> </li>
-			<li><a href="{{ url('/aglos') }}"> Aglomerados </a> </li>
+
                     </ul>
 
                     <!-- Right Side Of Navbar -->
@@ -86,17 +76,5 @@
             @yield('content')
         </main>
     </div>
-<!-- If using flash()->important() or flash()->overlay(), you'll need to pull in the JS for Twitter Bootstrap. -->
-<script src="//code.jquery.com/jquery.js"></script>
-<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
-<script>
-   $(document).ready( function () {
-    $('#flash-overlay-modal').modal();
-});
-</script>
-<script>
-$('div.alert').not('.alert-important').delay(3000).fadeOut(350);
-</script>
-    @yield ('footer_scripts')
 </body>
 </html>
