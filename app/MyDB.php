@@ -30,20 +30,28 @@ class MyDB extends Model
                          DB::unprepared('ALTER TABLE '.$esquema.'.listado RENAME cod_tipo_v TO tipoviv');
                    }elseif (Schema::hasColumn($esquema.'.listado' , 'cod_viv')){
                            DB::unprepared('ALTER TABLE '.$esquema.'.listado RENAME cod_viv TO tipoviv');
-                       }else{
+                       }elseif (Schema::hasTable($esquema.'.listado')){
                            DB::statement('ALTER TABLE '.$esquema.'.listado ADD COLUMN tipoviv text;');
                        }
              }
-             DB::unprepared("Select indec.cargar_conteos('".$esquema."')");
-             DB::unprepared("Select indec.generar_adyacencias('".$esquema."')");
+             if (Schema::hasTable($esquema.'.arc') and Schema::hasTable($esquema.'.listado')){
+                 DB::unprepared("Select indec.cargar_conteos('".$esquema."')");
+                 DB::unprepared("Select indec.generar_adyacencias('".$esquema."')");
+             }
              DB::commit();
 	}
 
     
 	public static function agregarsegisegd($esquema)
 	{
-	 DB::statement('ALTER TABLE e'.$esquema.'.arc ADD COLUMN IF NOT EXISTS segi integer;');
-	 DB::statement('ALTER TABLE e'.$esquema.'.arc ADD COLUMN IF NOT EXISTS segd integer;');
+        if (Schema::hasTable($esquema.'.arc')) {
+    	 DB::statement('ALTER TABLE e'.$esquema.'.arc ADD COLUMN IF NOT EXISTS segi integer;');
+    	 DB::statement('ALTER TABLE e'.$esquema.'.arc ADD COLUMN IF NOT EXISTS segd integer;');
+         return true;
+        }
+        else{
+         return false;
+        }
 	}
 
 	public static function segmentar_equilibrado($esquema,$deseado = 10)
