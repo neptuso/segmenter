@@ -130,7 +130,9 @@ class Aglomerado extends Model
                                 ->orderBy('radio','asc') 
                                 ->get();
         }
-        foreach($radios as $radio){$links[]=$radio->link; };
+        if (is_array($radios)){
+            foreach($radios as $radio){$links[]=$radio->link; };
+        } else { return []; }
         $objRadios=Radio::whereIn('codigo',$links)->get();
    //     dd($objRadios);
         return $objRadios;
