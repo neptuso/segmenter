@@ -37,6 +37,7 @@ class MyDB extends Model
              if (Schema::hasTable($esquema.'.arc') and Schema::hasTable($esquema.'.listado')){
                  DB::unprepared("Select indec.cargar_conteos('".$esquema."')");
                  DB::unprepared("Select indec.generar_adyacencias('".$esquema."')");
+                 DB::unprepared("Select indec.descripcion_segmentos('".$esquema."')");
              }
              DB::commit();
 	}
