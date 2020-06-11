@@ -12,7 +12,7 @@ class Radio extends Model
     protected $table='radio';
 
     protected $fillable = [
-        'id','codigo','nombre'
+        'id','codigo','nombre','cant_mzas','vivs','isSegmentado'
     ];
 
     private $_isSegmentado;
@@ -116,7 +116,7 @@ class Radio extends Model
      }
 
      /**
-      * Fix Cantidad de manzanas en cartografia..
+      * El radio fue segmentado..
       *
       */
      public function getisSegmentadoAttribute($value)
