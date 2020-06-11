@@ -114,7 +114,7 @@ class Aglomerado extends Model
                                 ->select(DB::raw("prov||dpto||frac||radio as link,codloc,
              '('||dpto||') '||max(nom_dpto)||': '||frac||' '||radio as nombre,
              count(distinct mza) as cant_mzas,
-             count(*) as vivs,
+             count(indec.contar_vivienda(tipoviv)) as vivs,
              count(CASE WHEN tipoviv='A' THEN 1 else null END) as vivs_a,
              count(CASE WHEN (tipoviv='B1' or tipoviv='B2') THEN 1 else null END) as vivs_b,
              count(CASE WHEN tipoviv='CA/CP' THEN 1 else null END) as vivs_c,
@@ -130,11 +130,11 @@ class Aglomerado extends Model
                                 ->orderBy('radio','asc') 
                                 ->get();
         }
-        if (is_array($radios)){
-            foreach($radios as $radio){$links[]=$radio->link; };
-        } else { return []; }
+        if ($radios==null){
+            return [];
+        }
+        foreach($radios as $radio){$links[]=$radio->link; };
         $objRadios=Radio::whereIn('codigo',$links)->get();
-   //     dd($objRadios);
         return $objRadios;
 
     }
