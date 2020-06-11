@@ -1,21 +1,22 @@
 <div class="container">
     Información del aglomerado ({{ $aglomerado->codigo }}) 
     <b> {{ $aglomerado->nombre }} </b><br />
-    <div class="">
+    <div class="row">
+        <div class="col-sm"> 
      @if($carto)
         La base geográfica está cargada.
      @else
         NO está cargada la base geográfica.
      @endif 
-    </div>
-    <div class="">
+        </div>
+        <div class="col-sm"> 
      @if($listado)
         El Listado de viviendas esta cargado.
      @else
         NO está cargado el listado de viviendas.
      @endif 
+        </div>
     </div>
-
 <div class="form-horizontal">
 <form action="/grafo/{{ $aglomerado->id }}" method="GET" enctype="multipart/form-data">
                 @csrf
