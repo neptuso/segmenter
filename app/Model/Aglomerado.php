@@ -111,16 +111,18 @@ class Aglomerado extends Model
         $radios= null;
         if ($this->Listado==1){
             $radios = DB::table('e'.$this->codigo.'.listado')
-                                ->select(DB::raw("prov||dpto||frac||radio as link,codloc,
+                                ->select(DB::raw("null id,prov||dpto||frac||radio as codigo,
              '('||dpto||') '||max(nom_dpto)||': '||frac||' '||radio as nombre,
              count(distinct mza) as cant_mzas,
              count(indec.contar_vivienda(tipoviv)) as vivs,
+             true as \"isSegmentado\" ,
              count(CASE WHEN tipoviv='A' THEN 1 else null END) as vivs_a,
              count(CASE WHEN (tipoviv='B1' or tipoviv='B2') THEN 1 else null END) as vivs_b,
              count(CASE WHEN tipoviv='CA/CP' THEN 1 else null END) as vivs_c,
              count(CASE WHEN tipoviv='CO' THEN 1 else null END) as vivs_co,
              count(CASE WHEN (tipoviv='D'  or tipoviv='J'  or tipoviv='VE' )THEN 1 else null END) as vivs_djve,
-             count(CASE WHEN tipoviv='' THEN 1 else null END) as vivs_unclas
+             count(CASE WHEN tipoviv='' THEN 1 else null END) as vivs_unclas,
+             codloc
     "))
                                 ->groupBy('prov','dpto','codloc','frac','radio')
                                 ->orderBy('prov','asc')
@@ -133,8 +135,13 @@ class Aglomerado extends Model
         if ($radios==null){
             return [];
         }
-        foreach($radios as $radio){$links[]=$radio->link; };
-        $objRadios=Radio::whereIn('codigo',$links)->get();
+        foreach($radios as $radio)
+        {
+            //$links[]=$radio->link;
+//                dd((array)($radio)); 
+        $objRadios[]=new Radio((array)$radio);
+        };
+        //dd($objRadios);
         return $objRadios;
 
     }

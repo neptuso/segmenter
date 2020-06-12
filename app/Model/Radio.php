@@ -17,6 +17,7 @@ class Radio extends Model
 
     private $_isSegmentado;
     private $_resultado;
+    private $_cant_mzas;
 
      /**
       * Fix datos..
@@ -105,14 +106,28 @@ class Radio extends Model
       */
      public function getCantMzasAttribute($value)
      {
-        if ($this->aglomerado() != null){
-          $cant_mzas = MyDB::getCantMzas($this->codigo,'e'.$this->aglomerado()->first()->codigo);
-          $cant_mzas = $cant_mzas[0]->cant_mzas;
-          return $cant_mzas;
+        if (! isset($this->_cant_mzas)){
+            if ($this->aglomerado() != null){
+              $cant_mzas = MyDB::getCantMzas($this->codigo,'e'.$this->aglomerado()->first()->codigo);
+              $this->_cant_mzas = $cant_mzas[0]->cant_mzas;
+              return $this->_cant_mzas;
+            }
+            else{
+                dd($this);
+              return -1;
+            }
+        }else{
+            return $this->_cant_mzas;
         }
-        else{
-          return -1;
-        }
+     }
+
+     /**
+      * Mutator set params CantMzas to cache.
+      *
+      */
+     public function setCantMzasAttribute($value)
+     {
+        $this->_cant_mzas=$value;
      }
 
      /**
@@ -137,6 +152,15 @@ class Radio extends Model
         }else{
             return $this->_isSegmentado;
         }
+     }
+
+     /**
+      * Mutator set params IsSegmentado to cache.
+      *
+      */
+     public function setisSegmentadoAttribute($value)
+     {
+        $this->_isSegmentado=$value;
      }
 
     public function getResultadoAttribute($value)
