@@ -28,7 +28,7 @@
             @foreach($radios as $radio)
     <li class="btn @if($radio->isSegmentado) segmentado @endif " >
     @if($radio->isSegmentado)<a href="{{ url('/grafo/'.$aglomerado->id.'/'.$radio->id) }}"> @endif
-        {{ trim($radio->codigo) }}: {{ trim($radio->nombre) }} <br />Mzas: {{ trim($radio->CantMzas) }}
+        {{ trim($radio->codigo) }}: {{ trim($radio->nombre) }} <br />Mzas: {{ trim($radio->CantMzas) }} <br />Vivs: {{ trim($radio->vivs) }}
     @if($radio->isSegmentado)</a> @endif
     </li>
             @endforeach
