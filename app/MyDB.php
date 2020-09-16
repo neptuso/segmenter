@@ -14,6 +14,21 @@ class MyDB extends Model
 		DB::statement('CREATE SCHEMA IF NOT EXISTS e'.$esquema);
 	}
 
+    public static function infoDBF($file_name,$esquema)
+    {
+         $tabla = strtolower( substr($file_name,strrpos($file_name,'/')+1,-4) );
+    	return json_encode(DB::select('
+                        SELECT prov,dpto,nom_loc,codaglo, codloc, nom_loc, codent,nom_ent,count(*) registros, 
+                        count(distinct frac||radio) as radios,
+                        count(indec.contar_vivienda(cod_tipo_v)) as vivendas 
+                        --,count(*) vivs
+                        ,count(distinct prov||dpto||codloc||frac||radio||mza) as mzas
+                        --,array_agg(distinct prov||dpto||codloc||frac||radio||mza||lado),count(distinct lado) as lados 
+FROM 
+                        '.$tabla.'
+                        GROUP BY 1,2,3,4,5,6,7,8;')); 
+          
+    }
 	public static function moverDBF($file_name,$esquema)
 	{
          $tabla = strtolower( substr($file_name,strrpos($file_name,'/')+1,-4) );
@@ -30,27 +45,53 @@ class MyDB extends Model
                          DB::unprepared('ALTER TABLE '.$esquema.'.listado RENAME cod_tipo_v TO tipoviv');
                    }elseif (Schema::hasColumn($esquema.'.listado' , 'cod_viv')){
                            DB::unprepared('ALTER TABLE '.$esquema.'.listado RENAME cod_viv TO tipoviv');
-                       }else{
+                       }elseif (Schema::hasTable($esquema.'.listado')){
                            DB::statement('ALTER TABLE '.$esquema.'.listado ADD COLUMN tipoviv text;');
                        }
              }
-             DB::unprepared("Select indec.cargar_conteos('".$esquema."')");
-             DB::unprepared("Select indec.generar_adyacencias('".$esquema."')");
+             if (! Schema::hasColumn($esquema.'.listado' , 'piso')){
+                     DB::unprepared('ALTER TABLE '.$esquema.'.listado RENAME pisoredef TO piso');
+             }
+             if (Schema::hasTable($esquema.'.arc') and Schema::hasTable($esquema.'.listado')){
+                if (! Schema::hasColumn($esquema.'.arc' , 'nomencla10')){
+                            DB::statement('ALTER TABLE '.$esquema.'.arc ADD COLUMN IF NOT EXISTS nomencla10 text;');
+                }
+                if (! Schema::hasColumn($esquema.'.arc' , 'segi')){
+    	                    DB::statement('ALTER TABLE '.$esquema.'.arc ADD COLUMN IF NOT EXISTS segi integer;');
+                }
+                if (! Schema::hasColumn($esquema.'.arc' , 'segd')){
+                            DB::statement('ALTER TABLE '.$esquema.'.arc ADD COLUMN IF NOT EXISTS segd integer;');
+                }
+                 DB::unprepared("Select indec.cargar_conteos('".$esquema."')");
+                 DB::unprepared("Select indec.generar_adyacencias('".$esquema."')");
+                 DB::unprepared("Select indec.descripcion_segmentos('".$esquema."')");
+             }
              DB::commit();
 	}
 
     
 	public static function agregarsegisegd($esquema)
 	{
-	 DB::statement('ALTER TABLE e'.$esquema.'.arc ADD COLUMN segi integer;');
-	 DB::statement('ALTER TABLE e'.$esquema.'.arc ADD COLUMN segd integer;');
+        if (Schema::hasTable('e'.$esquema.'.arc')) {
+    	 DB::statement('ALTER TABLE e'.$esquema.'.arc ADD COLUMN IF NOT EXISTS segi integer;');
+    	 DB::statement('ALTER TABLE e'.$esquema.'.arc ADD COLUMN IF NOT EXISTS segd integer;');
+         return true;
+        }
+        else{
+         return false;
+        }
 	}
 
 	public static function segmentar_equilibrado($esquema,$deseado = 10)
 	{
     	if ( DB::statement("SELECT indec.segmentar_equilibrado('e".$esquema."',".$deseado.");") ){
         //    MyDB::georeferenciar_segmentacion($esquema);
-            return true;
+        // llamar generar r3 como tabla resultado de function indec.r3(agl)
+            if( DB::statement("SELECT indec.r3('e".$esquema."');") ) {
+        // unir con aglo.descripcion_segmentos usando una estructura para ambas
+//        if( DB::statement("SELECT indec.funcion_que_genera_la_descripcion('e".$esquema."');") )            
+          if( DB::statement("SELECT indec.descripcion_segmentos('e".$esquema."');") ) 
+            return true;}
         }else{ return false; }
 
      // SQL retrun: Select segmento_id,count(*) FROM e0777.segmentacion GROUP BY segmento_id;

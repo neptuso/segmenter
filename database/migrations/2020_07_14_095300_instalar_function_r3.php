@@ -5,21 +5,19 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
-class GenerarDescripcionDeSegmentosTextual extends Migration
+class InstalarFunctionR3 extends Migration
 {
     /**
      * Run the migrations.
-     * https://github.com/manureta/segmenter/issues/13
+     * https://github.com/hernan-alperin/Segmentacion-CORE/issues/11
      * @return void
      */
     public function up()
     {
         //
         Eloquent::unguard();
-        //$this->command->info('- Instalando función para generar descripción de segmentos textual...');
-        $path = 'app/developer_docs/segmentacion-core/descripcion_segmentos/descripcion_segmentos.sql';
+        $path = 'app/developer_docs/Segmentacion-CORE/descripcion_segmentos/R3.sql';
         DB::unprepared(file_get_contents($path));
-        //$this->command->info('instalada!');
     }
 
     /**
@@ -31,7 +29,8 @@ class GenerarDescripcionDeSegmentosTextual extends Migration
     {
         //
         Eloquent::unguard();
-        DB::statement('drop function if exists indec.descripcion_segmentos(aglomerado text)');
+        DB::statement('drop function if exists indec.r3(aglomerado text)');
     }
 }
+
 
