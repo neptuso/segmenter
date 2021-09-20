@@ -30,7 +30,8 @@
             <div class="container">
 		@include('flash::message')
                 <a class="navbar-brand text-uppercase" href="{{ url('/') }}">
-                <img src="/images/mandarina.svg" width="30" height="30" class="d-inline-block align-top" alt="">
+                <img src="/images/logocenso.png" width="30" height="30" class="d-inline-block align-top" alt="">
+                <img src="/images/mandarina.svg" width="30" height="30" class="d-inline-block align-top" alt=" :) ">
                     {{ config('app.name', 'App sin nombre') }}
                 </a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
