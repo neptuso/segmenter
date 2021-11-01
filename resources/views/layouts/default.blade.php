@@ -32,10 +32,9 @@
                 <div class="m-0 p-0 text-center" >
                 <a class="navbar-brand text-uppercase" href="{{ url('/') }}">
                 <img src="/images/logocenso.png" width="30" height="30" class="d-inline-block align-top" alt="">
-                <img src="/images/mandarina.svg" width="30" height="30" class="d-inline-block align-top" alt=" :) ">
                     {{ config('app.name', 'App sin nombre') }}
                 </a>
-                <div style="position: relative; top: -15px;">{{ Git::branch() }}</div>
+                <div style="position: relative; top: -15px; height:0px;">{{ Git::branch() }}</div>
                 </div>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
                     <span class="navbar-toggler-icon"></span>

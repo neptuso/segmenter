@@ -86,6 +86,16 @@ class Radio extends Model
      }
 
      /**
+      * Relación con Entidad, un Radio puede estar en varias entidades de varias localidades.
+      *
+      */
+
+     public function entidades()
+     {
+        return $this->belongsToMany('App\Model\Entidad', 'radio_entidad');
+     }
+
+     /**
       * Relación con Aglomerado, un Radio puede pertenecer a varios aglomerado? Espero que solo este en 1.
       *
       */
@@ -158,8 +168,13 @@ class Radio extends Model
 
         $segmenta->vista_segmentos_lados_completos($esquema);
         $segmenta->lados_completos_a_tabla_segmentacion_ffrr($esquema,$frac,$radio);
-        $segmenta->segmentar_excedidos_ffrr($esquema,$frac,$radio,$max,$deseadas);
 
+        // Calculo de umbral ...
+	// Según primer aproximación charlada con -h ...
+	// Valor mayor entre el máximo y el doble del mínimo.
+	$umbral=max($min*2,$max);
+
+        $segmenta->segmentar_excedidos_ffrr($esquema,$frac,$radio,$umbral,$deseadas);
         $this->resultado = $segmenta->ver_segmentacion().'
         x '.$AppUser->name.' ('.$AppUser->email.') en '.date("Y-m-d H:i:s").
 	'
@@ -241,12 +256,21 @@ class Radio extends Model
 			    }elseif ($this->fraccion->departamento->provincia->codigo == '06') {
                                $this->_esquema = 'e'.$this->fraccion->departamento->codigo;
                                }elseif ($this->localidades()->count() > 1) {
-			           Log::warning('TODO: Implementar radio multilocalidades'.$this->localidades()->get()->toJson(
-					JSON_PRETTY_PRINT));
-				    foreach($this->localidades()->get() as $localidad){
-					Log::info('Posible esquema:'.($localidad->codigo));
-		                    }
-                                   $this->_esquema = 'e'.$this->fraccion->departamento->codigo;
+				   $loc_no_rural=$this->localidades()->whereHas('aglomerado', function($q) {
+                                              $q->where('codigo', 'not like', '%000%');
+                                               })->get();
+				   if ($loc_no_rural->count() > 1) {
+					   Log::warning('TODO: Implementar radio multilocalidades'.$this->localidades()->get()->toJson(
+					   JSON_PRETTY_PRINT));
+                                     foreach($loc_no_rural as $localidad){
+                                       Log::info('Posible esquema:'.($localidad->codigo));
+                                     }
+				      $this->_esquema = 'e'.$this->fraccion->departamento->codigo;
+				    }else{
+					    Log::info('Buscando parte Urbana del Radio en esquema:'.
+						    ($loc_no_rural->first()->aglomerado()->first()->codigo));
+                                      $this->_esquema = 'e'.$loc_no_rural->first()->aglomerado()->first()->codigo;
+				    }
                               }
                     }catch (Exception $e){
                          Log::error('Algo muy raro paso: '.$e);
@@ -302,7 +326,8 @@ class Radio extends Model
             $svg=DB::select("
 WITH shapes (geom, attribute, tipo) AS (
     ( SELECT st_buffer(CASE WHEN trim(lg.tipoviv) in ('','LSV') then lg.wkb_geometry_lado
-    else lg.wkb_geometry END,1) wkb_geometry, segmento_id::integer,
+    else lg.wkb_geometry END,1) wkb_geometry, 
+    rank() over (order by segmento_id::integer) as attribute,
     lg.tipoviv tipo
     FROM ".$this->esquema.".listado_geo lg JOIN ".$this->esquema.".segmentacion
     s ON s.listado_id=id_list
