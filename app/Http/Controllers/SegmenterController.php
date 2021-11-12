@@ -363,7 +363,7 @@ class SegmenterController extends Controller
 
 			// Busco Aglomerado de la localidad y asigno localidad al aglomerado
 			$aglo_data=MyDB::getDataAglo($tabla,'public',$oLocalidad->codigo);
-			$oLocalidad->Aglomerado()->associate(Aglomerado::firstorCreate(['codigo'=>$aglo_data['codigo']],
+			$oLocalidad->Aglomerado()->associate(Aglomerado::firstorCreate(['codigo'=>$aglo_data->codigo],
 				collect($aglo_data)->toArray()));
 			$oLocalidad->save();
 
@@ -398,7 +398,7 @@ class SegmenterController extends Controller
     }
 
     if (Archivo::cargar($request, Auth::user())) {
-	    if($oDepto){
+	    if(isset($oDepto)){
 		    //return redirect('/depto/'.$oDepto->id);
 		    return view('deptoview',['departamento' =>
                            $oDepto->loadCount('localidades')]);
