@@ -17,13 +17,10 @@ class CreateProvinciaTable extends Migration
         Schema::create('provincia', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->timestamps();
-
         });
      **/
-/*
-	 $sql = file_get_contents(database_path() . '/migrations/2020_01_02_202716_create_provincia_table.up.sql');
-	 DB::unprepared($sql);
-*/
+        // SI ya no esta la tabla de provincia.
+        if (! Schema::hasTable('provincia')){
 	Schema::create('provincia', function (Blueprint $table) {
 		$table->bigIncrements('id')->index();
 		$table->string('codigo')->index();
@@ -32,8 +29,11 @@ class CreateProvinciaTable extends Migration
 		$table->date('fecha_hasta')->nullable();
 		$table->integer('observacion_id')->nullable();
 		$table->integer('geometria_id')->nullable();
-		//$table->timestamps();
-});
+	});
+        }else{
+             echo 'No se crea tabla de provincia xq ya se encuentra una.
+';
+        }
     }
 
     /**
@@ -43,6 +43,6 @@ class CreateProvinciaTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('provincia');
+//        Schema::dropIfExists('provincia');
     }
 }
