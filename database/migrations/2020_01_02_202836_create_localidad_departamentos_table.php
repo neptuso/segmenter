@@ -19,9 +19,17 @@ class CreateLocalidadDepartamentosTable extends Migration
             $table->timestamps();
 
         });
-     **/
+	**/
+        // SI ya no esta la tabla de localidad_departamento.
+        if (! Schema::hasTable('localidad_departamento')){
+	    
 	 $sql = file_get_contents(app_path() . '/developer_docs/localidad_departamento.up.sql');
 	 DB::unprepared($sql);
+        }else{
+             echo 'No se crea tabla de localidad_departamento xq ya se encuentra una.
+';
+        }
+	 
     }
 
     /**
@@ -31,6 +39,6 @@ class CreateLocalidadDepartamentosTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('localidad_departamento');
+//        Schema::dropIfExists('localidad_departamento');
     }
 }

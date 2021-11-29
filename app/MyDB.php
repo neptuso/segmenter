@@ -33,22 +33,22 @@ class MyDB extends Model
             return $result;
         }
 
-        // Segmenta a listado lso lados excedidos segun umbral
+        // Segmenta a listado los lados excedidos segun umbral
         // 
         public static function 
         segmentar_excedidos_ffrr($esquema,$frac,$radio,$umbral=20,$deseado=20)
         {
             try{
-                Log::debug('Resegmentando segmentos excedidos de fraccion
+                Log::info('Resegmentando segmentos excedidos de fraccion
                 '.$frac.', radio '.$radio);
-                DB::statement(" SELECT indec.segmentar_excedidos_ffrr(
+                return DB::statement(" SELECT indec.segmentar_excedidos_ffrr(
                 'e".$esquema."',".$frac.",".$radio.",".$umbral.",".$deseado.");");
             }catch(QueryException $e){
                 Log::warning('No se pudo segmentar segmentos excedidos, reintentando...');
                 self::cambiarSegmentarBigInt($esquema);
                 self::recrea_vista_segmentos_lados_completos($esquema);
                 try{
-                    DB::statement(" SELECT indec.segmentar_excedidos_ffrr(
+                    return DB::statement(" SELECT indec.segmentar_excedidos_ffrr(
                     'e".$esquema."',".$frac.",".$radio.",".$umbral.",".$deseado.");");
                 }catch(QueryException $e){
                     Log::error('No se pudo segmentar segmentos excedidos'.$e);
@@ -110,10 +110,15 @@ class MyDB extends Model
 
         // Junta los segmentos con 0 vivendas al segmneto menor cercano.
         public static function juntar_segmentos($esquema)
-        {
-            $result = DB::statement("SELECT indec.juntar_segmentos('".$esquema."')");
-            Log::debug('Juntando segmentos del esquema-> '.$esquema);
-            return $result;
+	{
+            try{
+              $result = DB::statement("SELECT indec.juntar_segmentos('".$esquema."')");
+              Log::debug('Juntando segmentos del esquema-> '.$esquema);
+              return $result;
+            }catch(QueryException $e){
+              Log::error('ERROR Juntando segmentos del esquema-> '.$esquema);
+	      return false;
+	    }
         }
 
         //Crea el esquema si no existe y asigna los permisos.
@@ -123,6 +128,19 @@ class MyDB extends Model
             Log::debug('Creando esquema-> '.$esquema);
             self::darPermisos('e'.$esquema);
         }
+
+        //Dar permisos a una tabla.
+        public static function darPermisosTabla($tabla,$rol='geoestadistica')
+        {
+            try{
+                DB::statement("GRANT SELECT ON TABLE  ".$tabla." TO ".$rol);
+            }catch(QueryException $e){
+                Log::error('No se pudo dar permiso a '.$rol.' sobre '.$tabla.'.'.$e);
+	        return false;
+            }
+	    Log::info('Se dió permiso a '.$rol.' sobre '.$tabla.'.');
+	    return true;
+	}
 
         //Develve data del DBF subido.
         public static function infoDBF($tabla,$esquema)
@@ -157,10 +175,10 @@ FROM
 		    $filtro.
 		    ' group by 1,2 order by count(*) desc Limit 1;')[0]);
         }catch (\Illuminate\Database\QueryException $exception) {
-		Log::error('Error: '.$exception);
-		//Supongo codprov sin Nombre
+		Log::warning('Aglomerado Sin Nombre: '.$exception);
+		//Supongo sin Nombre
 		$codaglo=self::getAglo($tabla,$esquema,$filtro);
-	    return ['codigo'=>$codaglo,'nombre'=>'Sin Nombre'];
+	    return (object) ['codigo'=>$codaglo,'nombre'=>'Sin Nombre'];
 	}
     }
 
@@ -200,9 +218,15 @@ FROM
             return (DB::select('SELECT codprov||coddepto as codigo,nomdepto as nombre FROM
             '.$esquema.'.'.$tabla.' group by 1,2 order by codprov||coddepto asc,count(*) desc ;'));
         }catch (\Illuminate\Database\QueryException $exception) {
-		Log::error('Error: '.$exception);
-		//
-	    return null;;
+            if (Schema::hasColumn($esquema.'.'.$tabla , 'coddepto')){
+                DB::unprepared('ALTER TABLE '.$esquema.'.'.$tabla.' RENAME coddepto23 TO coddepto');
+                Log::warning('Cuidado!! Se utilizó coddepto23 cono coddepto : '.$exception);
+                return (DB::select('SELECT codprov||coddepto as codigo,nomdepto as nombre FROM
+	            '.$esquema.'.'.$tabla.' group by 1,2 order by codprov||coddepto asc,count(*) desc ;'));
+	    }
+	    Log::error('Error: '.$exception);
+		// Loguea error y devuelve array nulo 
+	    return [];
 	}
     }
 
@@ -230,12 +254,21 @@ FROM
 	    }else{$filtro='';}
         try {
 	    return (DB::select('SELECT codprov||coddepto||frac2020||radio2020 as codigo,
-		codprov||coddepto||codloc||frac2020||radio2020 as nombre,tiporad20 as tipo FROM
+		codprov||coddepto||codloc||frac2020||radio2020 as nombre,upper(tiporad20) as tipo FROM
                 '.$esquema.'.'.$tabla.' '.$filtro.' group by 1,2,3 order by codprov||coddepto||codloc||frac2020||radio2020 asc, count(*) desc ;'));
         }catch (\Illuminate\Database\QueryException $exception) {
-		Log::error('Error: '.$exception);
+	    Log::warning('Malabares : '.$exception);
+	    flash('Puede que no se haya encontrado el tipo de radio, se asúme todo Urbano')->important()->warning();
+	    // Se intenta asumiendo que es urbano y falta el tiporad20	
+            try {
+	       return (DB::select('SELECT codprov||coddepto||frac2020||radio2020 as codigo,
+		codprov||coddepto||codloc||frac2020||radio2020 as nombre,\'U\' as tipo FROM
+                '.$esquema.'.'.$tabla.' '.$filtro.' group by 1,2,3 order by codprov||coddepto||codloc||frac2020||radio2020 asc, count(*) desc ;'));
 		//
-	    return null;;
+            }catch (\Illuminate\Database\QueryException $exception) {
+	        Log::error('Error : '.$exception);
+	        return null;
+	    }
 	}
     }
 
@@ -259,6 +292,21 @@ FROM
     {
         return (DB::select('SELECT distinct prov||dpto||codloc as link FROM
         '.$esquema.'.'.$tabla.' Limit 1;')[0]->link);
+    }
+
+    public static function getEntidades($tabla,$esquema,$localidad=null)
+    {
+	if(isset($localidad)) {
+	    $filtro=" WHERE codprov||coddepto||codloc= '".$localidad->codigo."'";
+	}else{$filtro='';}
+        try {
+            return (DB::select('SELECT distinct prov||dpto||codloc||codent as codigo, noment as nombre FROM
+		    '.$esquema.'.'.$tabla.' '.$filtro.' group by 1,2 
+		    order by codprov||coddepto||codloc||codent asc, count(*) desc ;'));
+        }catch (\Illuminate\Database\QueryException $exception) {
+            Log::error('Error: '.$exception);
+	    return null;
+	}
     }
 
     public static function procesarPxRad($tabla,$esquema)
@@ -297,7 +345,7 @@ FROM
 		    $resumen=DB::select('SELECT codprov,coddepto,codloc,count(*) as radios FROM
         '.$esquema.'.'.$tabla.' GROUP BY codprov,coddepto,codloc ;');
             }catch (\Illuminate\Database\QueryException $exception) {
-		    Log::error('No se cargó correctamente la PxRad: '.$resumen.'' .$exception);
+		    Log::error('No se cargó correctamente la PxRad: ('.collect($resumen)->toJson(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE).') ' .$exception);
 		  flash( $resumen='NO se cargó correctamente la PxRad')->error()->important();
 	    }
 		return collect($resumen)->toJson();
@@ -366,7 +414,20 @@ FROM
                         DB::statement('ALTER TABLE '.$esquema.'.listado ADD
                             COLUMN piso text;');
                     }
-            }
+	    }elseif (Schema::hasColumn($esquema.'.listado' , 'pisoredef')){
+                  DB::statement('ALTER TABLE '.$esquema.'.listado ADD COLUMN
+                   piso_original text ;');
+
+                  DB::statement("UPDATE ".$esquema.".listado SET
+                  piso_original=piso,
+                    piso=COALESCE(nullif(trim(pisoredef),''),nullif(trim(piso),''));");
+                  Log::debug('Se encontró piso y pisoredef, se usa el pisoredef
+                    y si esta vacio se usa el piso');
+
+	    }
+
+
+
                 if (! Schema::hasColumn($esquema.'.listado' , 'nrocatastr')){
                         if (Schema::hasColumn($esquema.'.listado' , 'nro_catast')){
                         DB::unprepared('ALTER TABLE '.$esquema.'.listado RENAME
@@ -441,12 +502,13 @@ FROM
                 DB::beginTransaction();
                     try {
                         DB::unprepared("Select indec.cargar_lados('".$esquema."')");
+                        DB::unprepared("Select indec.cargar_conteos('".$esquema."')");
+                        DB::unprepared("Select indec.generar_adyacencias('".$esquema."')");
+                        Log::info('Se procesaron lados, conteos y adyacencias!');
                     }catch (\Illuminate\Database\QueryException $exception) {
                             Log::error('No se pudieron cargar lados '.$exception);
                             DB::Rollback();
                     };
-                    DB::unprepared("Select indec.cargar_conteos('".$esquema."')");
-                    DB::unprepared("Select indec.generar_adyacencias('".$esquema."')");
                 DB::commit();
                 // Comienzan posprocesos de carga
                 DB::beginTransaction();
@@ -550,16 +612,16 @@ FROM
             }
         }
 
-        public static function grabarSegmentacion($esquema,$frac,$radio)
+        public static function grabarSegmentacion($esquema,$frac=null,$radio=null)
         {
-            if (Schema::hasTable('e'.$esquema.'.r3')) {
-            DB::statement("select indec.sincro_r3_ffrr('e".$esquema."', $frac, $radio)
-                ;"); // guarda indec.describe_segmentos_con_direcciones_ffrr en esquema.r3 (hace delete & insert)
+            if ($frac!=null) {
+              DB::statement("select indec.sincro_r3_ffrr('e".$esquema."', $frac, $radio);");
+	      // guarda indec.describe_segmentos_con_direcciones_ffrr en esquema.r3 (hace delete & insert)a
+	    }else{
+	      DB::statement("SELECT indec.sincro_r3('e".$esquema."');");
+            }
+            Log::info('Se actualizó la R3!');
             return true;
-            }
-            else{
-            return false;
-            }
         }
 
 
@@ -576,23 +638,22 @@ FROM
                 self::addSequenceSegmentos('e'.$esquema,false);
                 self::generarSegmentacionNula('e'.$esquema);
                 if ( DB::statement("SELECT indec.segmentar_equilibrado('e".$esquema."',".$deseado.");") ){
-                	self::georeferenciar_segmentacion($esquema);
                 // llamar generar r3 como tabla resultado de function indec.r3(agl)
-                ( DB::statement("SELECT indec.r3('e".$esquema."');") );
-                ( DB::statement("SELECT indec.descripcion_segmentos('e".$esquema."');") );
-                ( DB::statement("SELECT indec.segmentos_desde_hasta('e".$esquema."');") );
-            // (?) crear 3 public static function distintas y correrlas desde arribo 
-		// como segmentar_equilibrado
+                    ( DB::statement("SELECT indec.descripcion_segmentos('e".$esquema."');") );
+                    ( DB::statement("SELECT indec.segmentos_desde_hasta('e".$esquema."');") );
+//             	self::georeferenciar_segmentacion($esquema);
 		//
-		// TODO: Llamar a función guardar segmentación para actualizar la r3 con los resultados...
-		// $esquema,$frac,$radio
-		// self::grabarSegmentacion($esquema,$frac,$radio)
-
+                 flash('Resultado: '.self::juntar_segmentos('e'.$esquema));
+		         // Llamar a función guardar segmentación para actualizar la r3 con los resultados...
+                 // $esquema para el esquema completo.
+		         self::grabarSegmentacion($esquema);
                     return true;
                 }else{ 
                     return false; }
             }catch (QueryException $e){
-                dd($e);
+                  LOG::error('Se produjo algún error luego de segmentar equilibrado a manzanas independientes '.$e);
+		  flash('Se produjo algún error luego de segmentar equilibrado a manzanas independientes')->error()->important();
+                  return false;
             }
 
 
@@ -621,7 +682,7 @@ FROM
                             indec.describe_despues_de_muestreo('".$esquema."')
                             ".$filtro." ;");
                 }catch(QueryException $e){
-                    Log::debug('Sin muestreo...');
+                    Log::info('Sin muestreo...');
             try{
                 return DB::select("
                         SELECT segmento_id, lpad(frac::text,2,'0') frac,
@@ -632,8 +693,7 @@ FROM
                             order by frac,radio,seg,segmento_id
                             LIMIT ".$max.";");
                 }catch(QueryException $e){
-                    Log::warning($e);
-                    flash('Se detecto una carga medio antigua. Se encontro tabla de
+                    Log::warning('Se detecto una carga medio antigua. Se encontro tabla de
                     "segmentos desde hasta". Pero sin vivendas... Se hace lo
                     que se puede.');
                     try{
@@ -651,9 +711,7 @@ FROM
                             LIMIT ".$max.";");
                     }catch(QueryException $e){
 
-                        Log::error($e);
-                
-                        flash('Se detecto una carga antigua. No se encontro tabla de
+                        Log::warning('Se detecto una carga antigua. No se encontro tabla de
                             "segmentos desde hasta". Se hace lo que se puede.');
                         try{
                         return DB::select('
@@ -671,7 +729,7 @@ FROM
                             ORDER BY count(*) asc, array_agg(mza), segmento_id 
                             LIMIT '.$max.';');
                         }catch(QueryException $e){
-                            Log::error('No hubo modo de encontrar una segmentación!');
+                            Log::error('No hubo modo de encontrar una segmentación! '.$e);
                             return [];
                         }
                 }
@@ -743,7 +801,7 @@ FROM
                 DB::statement("DROP TABLE IF EXISTS ".$esquema.".listado_geo;");
 			$query="
                 WITH listado as (
-            SELECT id, l.prov, nom_provin, ups, nro_area, l.dpto, nom_dpto, l.codaglo, l.codloc, 
+            SELECT id, l.prov, nom_provin, l.dpto, nom_dpto, l.codaglo, l.codloc, 
                 nom_loc, codent, nom_ent, l.frac, l.radio, l.mza, l.lado, 
                 CASE WHEN nro_inicia='' THEN 0 ELSE nro_inicia::integer END
                 ::integer as nro_inicia,
@@ -757,7 +815,7 @@ FROM
             row_number() over w_lado as nro_en_lado,
             count(*) over w_lado as cant_en_lado,
             count(*) over w as conteo,
-            conteo as conteo_vivs, accion,
+            conteo as conteo_vivs, 
             row_number() over w_nrocatastr as nro_en_numero
 
             FROM
@@ -776,15 +834,18 @@ FROM
 
         ), 
         arcos as (
-            SELECT min(ogc_fid) ogc_fid, st_LineMerge(st_union(wkb_geometry)) wkb_geometry,nomencla,codigo20,array_agg(distinct codigo10) codigo10, tipo, nombre,lado,min(desde) desde,
+	    SELECT min(ogc_fid) ogc_fid, st_LineMerge(st_union(wkb_geometry)) wkb_geometry,
+                   nomencla,codigo20,array_agg(distinct codigo10) codigo10, tipo, nombre,lado,min(desde) desde,
             max(hasta) hasta,mza 
             FROM 
-            (SELECT ogc_fid,st_reverse(wkb_geometry) wkb_geometry,nomencla10 nomencla,codigo20,codigo10,tipo, nombre, ancho, anchomed, ladoi lado,desdei desde,
+	    (SELECT ogc_fid,st_reverse(wkb_geometry) wkb_geometry,nomencla10 nomencla,codigo20,codigo10,
+             tipo, nombre, ancho, anchomed, ladoi lado,desdei desde,
         hastai hasta,mzai mza, nomencla10,nomenclai nomenclax, codinomb, segi seg 
         FROM ".$esquema.".arc
         UNION
-        SELECT ogc_fid,wkb_geometry,nomencla10 nomencla,codigo20,codigo10,tipo, nombre, ancho, anchomed, ladod lado,desded desde,
-        hastad hasta,mzad mza, nomencla10,nomenclad nomenclax, codinomb, segd seg 
+	SELECT ogc_fid,wkb_geometry,nomencla10 nomencla,codigo20,codigo10,tipo, nombre, 
+               ancho, anchomed, ladod lado,desded desde,
+               hastad hasta,mzad mza, nomencla10,nomenclad nomenclax, codinomb, segd seg 
         FROM ".$esquema.".arc
         ) arcos_juntados
         GROUP BY nomencla,codigo20,tipo, nombre,lado,mza
@@ -833,7 +894,7 @@ FROM
                     codigo10, nomencla, codigo20, 
                     tipo, nombre, e.lado ladoe, desde, hasta,e.mza mzae, 
                     frac, radio, l.mza, l.lado, ccalle, ncalle, l.nrocatastr, piso,casa,dpto_habit,sector,edificio,entrada,tipoviv, 
-                    descripcio,descripci2 , accion,
+                    descripcio,descripci2,
                     cant_en_lado
         INTO ".$esquema.".listado_geo
         FROM arcos e JOIN listado l ON 
@@ -846,19 +907,10 @@ FROM
 		
 	    $resultado= DB::select($query);
 
-            if (in_array($esquema,array ("e02014010","e02035010","e02021010")))
-            // Agrego las excpeciones para corregir corrimiento en Comuna 2 y 5
-            // para la prueba experimental. Yapa la comuna 3 para probar.
-            {
-                self::geo_translate($esquema);
-                Log::debug('Traslado CABA '.$esquema);
-            }
-
             }catch(QueryException $e){
                     Log::error('No se pudo georeferenciar el listado.'.$e);
                         flash('No se pudo georeferenciar el listado. 
                         Reintente.')->error()->important();
-                        self::juntaListadoGeom($esquema);
                     return false;
             }
             try{
@@ -901,7 +953,7 @@ FROM
             CASE WHEN l.nrocatastr='' or l.nrocatastr='S/N' THEN null::integer ELSE
             l.nrocatastr::integer END as nrocatastr, 
             piso, casa, dpto_habit, sector, edificio, entrada, tipoviv, descripcio, descripci2 , 
-            row_number() over(partition by l.frac, l.radio, l.mza, l.lado order by l.lado, orden_reco asc) nro_en_lado, conteo, accion
+            row_number() over(partition by l.frac, l.radio, l.mza, l.lado order by l.lado, orden_reco asc) nro_en_lado, conteo, 
             FROM
             ".$esquema.".listado l
             JOIN ".$esquema.".segmentacion s ON s.listado_id=l.id
@@ -937,7 +989,7 @@ FROM
                     codigo10, nomencla, codigo20, 
                         tipo, nombre, e.lado ladoe, desde, hasta,e.mza mzae,
                         frac, radio, l.mza, l.lado, ccalle, ncalle, l.nrocatastr, piso,casa,dpto_habit,sector,edificio,entrada,tipoviv, 
-                    descripcio,descripci2 , accion
+                    descripcio,descripci2 , 
         INTO ".$esquema.".listado_segmentado_geo
         FROM arcos e JOIN listado l ON l.ccalle::integer=e.codigo20 
         and
@@ -1051,7 +1103,6 @@ FROM
                 DB::statement("GRANT SELECT ON ALL TABLES IN SCHEMA  ".$esquema." TO ".$grupo);
                 DB::statement("ALTER DEFAULT PRIVILEGES IN SCHEMA  ".$esquema." GRANT
         SELECT ON TABLES TO ".$grupo);
-            //GRANT geoestadistica TO manuel;
                     
                     } catch (QueryException $e)  { 
                         Log::Error('No se pudieron asignar permisos');
@@ -1062,12 +1113,12 @@ FROM
 
         public static function addUser($usuario,$grupo='geoestadistica'){
                 try {
-    //                return DB::select("GRANT USAGE ON ".$esquema." TO ".$grupo.";");
-                DB::unprepared("GRANT ".$grupo." TO ".$usuario.";");
+                        DB::unprepared("GRANT ".$grupo." TO ".$usuario.";");
                     
                     } catch (QueryException $e)  { 
                         Log::Debug('No se pudo agregar al grupo '.$grupo.' al '.$usuario);
-                        return false;}
+		        return false;
+		    }
                 Log::Debug('Se pudo agregar al grupo '.$grupo.' al '.$usuario);
                 return true;
         }
@@ -1079,14 +1130,24 @@ FROM
             try{
                 DB::statement(" SELECT indec.cargarTopologia(
                 '".$esquema."','arc');");
+                DB::beginTransaction();
                 DB::statement(" DROP TABLE if exists ".$esquema.".manzanas;");
                 DB::statement(" CREATE TABLE ".$esquema.".manzanas AS SELECT * FROM
                 ".$esquema.".v_manzanas;");
-            }catch(QueryException $e){
+                DB::statement(" DROP TABLE if exists ".$esquema.".fracciones;");
+                DB::statement(" CREATE TABLE ".$esquema.".fracciones AS SELECT * FROM
+                ".$esquema.".v_fracciones;");
+                DB::statement(" DROP TABLE if exists ".$esquema.".radios;");
+                DB::statement(" CREATE TABLE ".$esquema.".radios AS SELECT * FROM
+		".$esquema.".v_radios;");
+                DB::commit();
+
+	    }catch(QueryException $e){
+		DB::Rollback();
                 Log::error('No se pudo cargar la topologia...'.$e);
                 return false;
             }
-            Log::debug('Se genraron fracciones, radios y manzanas ');
+            Log::debug('Se generaron fracciones, radios y manzanas ');
             return true;
         }
 
@@ -1203,6 +1264,83 @@ public static function addIndexId($tabla)
     }
      Log::debug('Se creo indice en id para '.$tabla);
 }
+
+// Generar salida pxseg -> tabla.
+public static function getPxSeg($esquema)
+{
+    try{
+        return DB::select(
+               "select row_number() over() id,* FROM (
+		       select r3.prov::character(2),null::character(4) codmuni,null::character(4) catmuni,
+                       '1046'::character(4) codaglo,null::character(2) nroentidad, lpad(r3.dpto::text,3,'0')::character(3) depto,
+                       lpad(r3.codloc::text,3,'0')::character(3) codloc, lpad(r3.frac::text,2,'0'::text)::character(2) frac,
+                       lpad(r3.radio::text,2,'0'::text)::character(2) radio,'U'::character(1) tiporad,l.mza mza,
+		       l.lado lado,'P' tipoform,seg seg,
+		       string_agg(distinct case when tipoviv in ('VE','CC','BC','CA') then tipoviv 
+                                                when indec.contar_vivienda(tipoviv) is not null then null 
+                                                when tipoviv in ('LSV',null,'') then null 
+                                                else 'incluye' end
+                        ,' ') ve_cc_bc_ca, 0 rural,
+                       count(indec.contar_vivienda(tipoviv)) vivs
+                 from ".$esquema.".r3 JOIN ".$esquema.".segmentacion s On s.segmento_id=r3.segmento_id
+                               JOIN ".$esquema.".listado l ON l.id=s.listado_id
+                 group by 1,2,3,4,5,6,7,8,9,10,11,12,13,14
+                 order by frac,radio,seg,mza,lado) foo ;
+                ");
+
+       }catch(QueryException $e){
+            Log::error('Error al generar la PxSeg '.$esquema.$e);
+            return 'Sin pxseg';
+       }
+}
+
+    public static function setSRID($esquema,$srid_id)
+    {
+    try{
+        DB::statement("UPDATE ".$esquema.".arc SET wkb_geometry=st_setsrid(wkb_geometry,".$srid_id.");");
+        DB::statement("UPDATE ".$esquema.".lab SET wkb_geometry=st_setsrid(wkb_geometry,".$srid_id.");");
+    }catch(QueryException $e){
+	    Log::warning('Problemas al establecer el SRS: '.$srid_id.' en '.$esquema.': '.$e);
+	    return;
+    }
+     Log::debug('Se estableció el SRS: '.$srid_id.' en '.$esquema);
+    }
+
+    //Generar R3.
+    public static function generarR3Esquema($esquema)
+    {
+//        try{
+//		self::generarR3($esquema);
+//        }catch(QueryException $e){
+            Log::error('TODO Función sin definir, generar R3 del esquema completo para el equema '.$esquema);
+            return false;
+//        }
+//        Log::info('Se dió permiso a '.$rol.' sobre '.$tabla.'.');
+//        return true;
+    }
+
+    // Generar informe de avances del uso del segmentador.
+    public static function getAvances($filtro=null)
+    {
+        try{
+            return DB::select(
+           "SELECT l.codigo, l.nombre localidad,
+	    a.codigo codaglo,a.nombre aglomerado,
+            count(*) radios,
+            count(r.resultado) probados,
+            round((count(r.resultado)/(1.0*count(*)))*100,1) segmentado,
+             max(date(updated_at)) fecha
+        from localidad l JOIN aglomerados a ON a.id=l.aglomerado_id
+             JOIN radio_localidad ON l.id=localidad_id
+             JOIN radio r ON r.id=radio_localidad.radio_id
+        WHERE r.updated_at is not null
+        GROUP BY 1,2,3,4
+        ORDER BY count(r.resultado) desc,a.codigo,l.codigo;");
+       }catch(QueryException $e){
+            Log::error('Error al consultar avances en radios '.$filtro.$e);
+            return 'Sin resultados de avances';
+       }
+    }
 
 }
 

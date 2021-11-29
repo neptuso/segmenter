@@ -14,15 +14,15 @@ class DatabaseSeeder extends Seeder
         $this->call([
     		UsersTableSeeder::class,
 	        // Bunch of seeders using Eloquent
-	        SqlSeeder::class,
-            SqlDeptoSeeder::class,
-            SqlLocSeeder::class,
-            SqlLocDeptoSeeder::class,
-            SqlAgloSeeder::class,
+       //        SqlSeeder::class,
+       //     SqlDeptoSeeder::class,
+       //     SqlLocSeeder::class,
+       //     SqlLocDeptoSeeder::class,
+       //     SqlAgloSeeder::class,
             SqlGobLocSeeder::class,
-            SqlFraccionSeeder::class,
-            SqlRadioSeeder::class,
-            SqlRadioLocSeeder::class,
+       //     SqlFraccionSeeder::class,
+       //     SqlRadioSeeder::class,
+       //     SqlRadioLocSeeder::class,
             SqlEntidadSeeder::class,
             SqlGobLocEntidadSeeder::class,
             SqlGobLocDeptoSeeder::class,
@@ -30,9 +30,8 @@ class DatabaseSeeder extends Seeder
             SqlParajeSeeder::class,
             SqlOperativosSeeder::class,
             SqlFuenteSeeder::class,
-            SqlSubtipoViviendaSeeder::class
-]);
-
-
+            SqlSubtipoViviendaSeeder::class //,
+       //     SqlRadioEntidadSeeder::class
+        ]);
     }
 }

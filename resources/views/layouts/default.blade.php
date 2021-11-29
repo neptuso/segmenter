@@ -29,11 +29,13 @@
         <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
             <div class="container">
 		@include('flash::message')
+                <div class="m-0 p-0 text-center" >
                 <a class="navbar-brand text-uppercase" href="{{ url('/') }}">
                 <img src="/images/logocenso.png" width="30" height="30" class="d-inline-block align-top" alt="">
-                <img src="/images/mandarina.svg" width="30" height="30" class="align-top" alt=" :) " style="position:relative; left:-12px">
                     {{ config('app.name', 'App sin nombre') }}
                 </a>
+                <div style="position: relative; top: -15px; height:0px;">{{ Git::branch() }}</div>
+                </div>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
                     <span class="navbar-toggler-icon"></span>
                 </button>
@@ -98,11 +100,9 @@
             @yield('content_main')
         <div id="copyright" class="text-center justify-content-center"
             style="display:block"><hr />© Copyright 2021 INDEC - Geoestadística
-            <div>{{ Git::version() }} -  {{ Git::lastCommitDate() }}</div>
+            <div>{{ Git::branch() }} - {{ Git::version() }} -  {{ Git::lastCommitDate() }}</div>
             </div>
 <!-- If using flash()->important() or flash()->overlay(), you'll need to pull in the JS for Twitter Bootstrap. -->
-<script src="//code.jquery.com/jquery.js"></script>
-<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
 <script>
    $(document).ready( function () {
     $('#flash-overlay-modal').modal();
