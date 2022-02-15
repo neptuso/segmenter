@@ -59,6 +59,10 @@ Route::get('/guia', function()
 });
 Route::get('/sala', 'SalaController@index')->name('sala');
 
+// Edición para borrar Relacion Departamento o Radio
+Route::get('/edicion', 'EdicionController@index')->name('edicion');
+Route::post('/edicion/eliminar', 'EdicionController@delete');
+
 Route::get('/setup', 'SetupController@index')->name('setup');
 Route::get('/setup/test', 'SetupController@testFlash')->name('setup.test');
 Route::get('/setup/{esquema}', 'SetupController@permisos')->name('setup.permisos');
@@ -129,6 +133,7 @@ Route::get('prov/deptos/{provincia?}','DepartamentoController@index');
 Route::get('prov/list/{provincia}','DepartamentoController@list');
 Route::get('depto/{departamento}','DepartamentoController@show');
 Route::post('depto/{departamento}','DepartamentoController@show_post');
+Route::delete('depto/{departamento}','DepartamentoController@destroy');
 
 // ---------- LOCALIDADES --------
 Route::get('localidades','LocalidadController@index');
@@ -171,6 +176,7 @@ Route::post('ver-segmentacion-lados-grafico-resumen/{aglomerado}','AglomeradoCon
 // Para CABA
 Route::get('radios/{localidad}/{departamento}','RadiosController@show');
 Route::get('radio/{radio}','RadioController@show');
+Route::delete('radio/{radio}','RadioController@destroy');
 
 // ---------- GRAFOS AGLOMERADOS --------
 Route::get('grafo/{aglomerado}','SegmentacionController@index')->name('index');
