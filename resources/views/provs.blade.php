@@ -22,25 +22,28 @@
    </div>
 
   <div class="container">
-   <h2>Listado de Provincias</h2>
+   <h4>Listado de Provincias</h4>
    <div class="row">
    <div class="col-lg-12">
-    <table class="table table-striped table-bordered dataTable table-hover order-column" id="laravel_datatable">
+    <table class="table table-sm table-striped table-bordered dataTable table-hover order-column table-condensed compact" id="laravel_datatable">
        <thead>
           <tr>
              <th>Id</th>
              <th>Código</th>
              <th>Nombre</th>
-             <th>Cantidad de Comunas / Partidos / Departamentos</th>
+             <th>Cantidad de Departamentos <small><a href='#nota'>(1)</a></small></th>
              <th>Cantidad de Localidades</th>
              <th>Cantidad de Fracciones</th>
              <th>Cantidad de Radios</th>
              <th>Cantidad de Radios Segmentados</th>
+             <th>% U+M</th>
+             <th>%</th>
              <th style="min-width:90px;"> * </th>
           </tr>
        </thead>
     </table>
    </div>
+    <div id=nota class='small '>(1) En la Ciudad Autónoma de Buenos Aires se denominan comunas y en la provincia de Buenos Aires partidos.</div>
    </div>
  </div>
 @endsection
@@ -101,6 +104,14 @@
                   { searchable: false , data: 'fracciones_count', name: 'fracciones_count' },
                   { searchable: false , data: 'radios_count', name: 'radios_count' },
                   { searchable: false , data: 'radios_resultado_count', name: 'radios_resultado_count' },
+                  { searchable: false , data: function(data,type,row) {
+                                if ( data["radios_count_u_m"]==0 ) return 0; 
+                                  else 
+                                  return Math.round(data["radios_resultado_count"] / data["radios_count_u_m"]*1000,2)/10}},
+                  { searchable: false , data: function(data,type,row) {
+                                if ( data["radios_count"]==0 ) return 0; 
+                                  else 
+                                  return Math.round(data["radios_resultado_count"] / data["radios_count"]*1000,2)/10}},
                   { orderable: false, searchable: false , data: function ( row, type, val, meta ) {
                                 var html =  '<button type="button" class="btn_departamentos btn-sm btn-primary" > Ver </button> ';
                                  html +=  '<button type="button" class="btn_prov btn-sm btn-primary" > Ver 2 </button>';

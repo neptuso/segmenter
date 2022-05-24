@@ -27,6 +27,14 @@ Route::get('/testeando', function () {
     return view('test');
 });
 
+Route::get('/gracias', function () {
+    return view('goodbye');
+});
+
+Route::get('/colaboradores', function () {
+    return view('user.list',['users'=>App\User::all()]);
+});
+
 Auth::routes();
 
 /**
@@ -76,6 +84,12 @@ Route::get('/setup/index/id/{tabla}',
 'SetupController@addIndexId')->name('setup.indexId');
 Route::get('/setup/geo/{esquema}',
 'SetupController@georeferenciarEsquema')->name('setup.geo');
+Route::get('/setup/geo/{esquema}/{n}',
+'SetupController@georeferenciarEsquema')->name('setup.geo.force');
+Route::get('/setup/geo/{esquema}/{n}/{frac}',
+'SetupController@georeferenciarEsquema')->name('setup.geo.force.frac');
+Route::get('/setup/geo/{esquema}/{n}/{frac}/{radio}',
+'SetupController@georeferenciarEsquema')->name('setup.geo.force.frac.radio');
 Route::get('/setup/geoseg/{esquema}',
 'SetupController@georeferenciarSegmentacionEsquema')->name('setup.geoseg');
 Route::get('/setup/segmenta/{esquema}',
@@ -86,6 +100,8 @@ Route::get('/setup/muestrea/{esquema}',
 'SetupController@muestreaEsquema')->name('setup.muestrea');
 Route::get('/setup/junta/{esquema}',
 'SetupController@juntarSegmentos')->name('setup.junta');
+Route::get('/setup/junta/{esquema}/{frac}/{radio}',
+'SetupController@juntarSegmentos')->name('setup.junta.frac.radio');
 Route::get('/setup/index/{esquema}/{tabla}/{cols}',
 'SetupController@createIndex')->name('setup.create.index');
 Route::get('/setup/grupogeoestadistica/{usuario}',
@@ -94,9 +110,32 @@ Route::get('/setup/grupogeoestadistica/tabla/{tabla}',
 'SetupController@grupoGeoestadisticaTabla')->name('setup.grupogeo.tabla');
 Route::get('/setup/duplicadosLSV/{esquema}',
 'SetupController@limpiaListado')->name('setup.limpialistado');
+Route::get('/setup/updateTipoViv/{esquema}',
+'SetupController@tipoVivdeDescripcion')->name('setup.tipovivdescripcion');
+Route::get('/setup/update/LS',
+'SetupController@juntaListadosSegmentados')->name('setup.junta.listados');
+Route::get('/setup/update/R3',
+'SetupController@juntaR3')->name('setup.juntaR3');
+Route::get('/setup/update/Manzanas',
+'SetupController@juntaManzanas')->name('setup.manzanas');
+Route::get('/setup/update/Vias',
+'SetupController@juntaVias')->name('setup.juntaVias');
+Route::get('/setup/update/Cuadras',
+'SetupController@juntaCuadras')->name('setup.cuadras');
+Route::get('/setup/adyacencias/{esquema}',
+'SetupController@generarAdyacenciasEsquema')->name('setup.adyacencias');
+Route::get('/setup/juntaMenores/{esquema}/{frac}/{radio}/{n}',
+'SetupController@juntarSegmentosMenores')->name('setup.junta_menores');
 
 Route::get('/inicio', 'HomeController@index')->name('inicio');
 Route::resource('/listado', 'ListadoController',['only' => [
+   'index', 'show', 'save'
+]]);
+
+/**
+ * Segmentos
+ */
+Route::resource('/segmentos', 'SegmentoController',['only' => [
    'index', 'show', 'save'
 ]]);
 Route::post('/domicilio/guardar/','DomicilioController@save');
@@ -138,8 +177,12 @@ Route::post('depto/{departamento}','DepartamentoController@show_post');
 Route::delete('depto/{departamento}','DepartamentoController@destroy');
 
 // ---------- LOCALIDADES --------
-Route::get('localidades','LocalidadController@index');
+Route::get('locas-list', 'LocalidadController@locasList');
+Route::post('locas-list', 'LocalidadController@locasList');
+Route::get('localidades','LocalidadController@list');
+Route::get('localidades_json','LocalidadController@index');
 Route::get('localidad/{localidad}','LocalidadController@show');
+Route::post('localidad/{localidad}','LocalidadController@segmenta_post');
 Route::post('localidad-segmenta/{localidad}','LocalidadController@segmenta_post');
 Route::get('localidad-segmenta/{localidad}','LocalidadController@segmenta_post');
 Route::post('localidad-segmenta-run/{localidad}','LocalidadController@run_segmentar');
@@ -179,6 +222,7 @@ Route::post('ver-segmentacion-lados-grafico-resumen/{aglomerado}','AglomeradoCon
 Route::get('radios/{localidad}/{departamento}','RadiosController@show');
 Route::get('radio/{radio}','RadioController@show');
 Route::delete('radio/{radio}','RadioController@destroy');
+Route::get('radio/codigo/{codigo}','RadioController@show_codigo');
 
 // ---------- GRAFOS AGLOMERADOS --------
 Route::get('grafo/{aglomerado}','SegmentacionController@index')->name('index');
@@ -191,6 +235,7 @@ Route::get('archivos','ArchivoController@index');
 Route::get('archivo/{archivo}','ArchivoController@show');
 Route::delete('archivo/{archivo}','ArchivoController@destroy');
 Route::get('archivo/{archivo}/descargar','ArchivoController@descargar');
+Route::get('archivo/{archivo}/procesar','ArchivoController@procesar');
 
 
 // ---------- TABLERO ---------
@@ -239,3 +284,135 @@ Route::get('/clear-cache', function() {
 });
 
 Route::get('/home', 'HomeController@index')->name('home');
+
+
+/* Auto-generated admin routes */
+Route::middleware(['auth:' . config('admin-auth.defaults.guard'), 'admin'])->group(static function () {
+    Route::prefix('admin')->namespace('Admin')->name('admin/')->group(static function() {
+        Route::prefix('admin-users')->name('admin-users/')->group(static function() {
+            Route::get('/',                                             'AdminUsersController@index')->name('index');
+            Route::get('/create',                                       'AdminUsersController@create')->name('create');
+            Route::post('/',                                            'AdminUsersController@store')->name('store');
+            Route::get('/{adminUser}/impersonal-login',                 'AdminUsersController@impersonalLogin')->name('impersonal-login');
+            Route::get('/{adminUser}/edit',                             'AdminUsersController@edit')->name('edit');
+            Route::post('/{adminUser}',                                 'AdminUsersController@update')->name('update');
+            Route::delete('/{adminUser}',                               'AdminUsersController@destroy')->name('destroy');
+            Route::get('/{adminUser}/resend-activation',                'AdminUsersController@resendActivationEmail')->name('resendActivationEmail');
+        });
+    });
+});
+
+Auth::routes();
+
+Route::get('/home', 'HomeController@index')->name('home');
+
+Auth::routes();
+
+Route::get('/home', 'HomeController@index')->name('home');
+
+
+/* Auto-generated admin routes */
+Route::middleware(['auth:' . config('admin-auth.defaults.guard'), 'admin'])->group(static function () {
+    Route::prefix('admin')->namespace('Admin')->name('admin/')->group(static function() {
+        Route::prefix('users')->name('users/')->group(static function() {
+            Route::get('/',                                             'UserController@index')->name('index');
+            Route::get('/create',                                       'UserController@create')->name('create');
+            Route::post('/',                                            'UserController@store')->name('store');
+            Route::get('/{user}/edit',                                  'UserController@edit')->name('edit');
+            Route::post('/bulk-destroy',                                'UserController@bulkDestroy')->name('bulk-destroy');
+            Route::post('/{user}',                                      'UserController@update')->name('update');
+            Route::delete('/{user}',                                    'UserController@destroy')->name('destroy');
+        });
+    });
+});
+
+/* Auto-generated admin routes */
+Route::middleware(['auth:' . config('admin-auth.defaults.guard'), 'admin'])->group(static function () {
+    Route::prefix('admin')->namespace('Admin')->name('admin/')->group(static function() {
+        Route::prefix('provincia')->name('provincia/')->group(static function() {
+            Route::get('/',                                             'ProvinciaController@index')->name('index');
+            Route::get('/create',                                       'ProvinciaController@create')->name('create');
+            Route::post('/',                                            'ProvinciaController@store')->name('store');
+            Route::get('/{provincium}/edit',                            'ProvinciaController@edit')->name('edit');
+            Route::post('/bulk-destroy',                                'ProvinciaController@bulkDestroy')->name('bulk-destroy');
+            Route::post('/{provincium}',                                'ProvinciaController@update')->name('update');
+            Route::delete('/{provincium}',                              'ProvinciaController@destroy')->name('destroy');
+        });
+    });
+});
+
+/* Auto-generated admin routes */
+Route::middleware(['auth:' . config('admin-auth.defaults.guard'), 'admin'])->group(static function () {
+    Route::prefix('admin')->namespace('Admin')->name('admin/')->group(static function() {
+        Route::prefix('tipo-de-radios')->name('tipo-de-radios/')->group(static function() {
+            Route::get('/',                                             'TipoDeRadioController@index')->name('index');
+            Route::get('/create',                                       'TipoDeRadioController@create')->name('create');
+            Route::post('/',                                            'TipoDeRadioController@store')->name('store');
+            Route::get('/{tipoDeRadio}/edit',                           'TipoDeRadioController@edit')->name('edit');
+            Route::post('/bulk-destroy',                                'TipoDeRadioController@bulkDestroy')->name('bulk-destroy');
+            Route::post('/{tipoDeRadio}',                               'TipoDeRadioController@update')->name('update');
+            Route::delete('/{tipoDeRadio}',                             'TipoDeRadioController@destroy')->name('destroy');
+        });
+    });
+});
+
+/* Auto-generated admin routes */
+Route::middleware(['auth:' . config('admin-auth.defaults.guard'), 'admin'])->group(static function () {
+    Route::prefix('admin')->namespace('Admin')->name('admin/')->group(static function() {
+        Route::prefix('departamentos')->name('departamentos/')->group(static function() {
+            Route::get('/',                                             'DepartamentoController@index')->name('index');
+            Route::get('/create',                                       'DepartamentoController@create')->name('create');
+            Route::post('/',                                            'DepartamentoController@store')->name('store');
+            Route::get('/{departamento}/edit',                          'DepartamentoController@edit')->name('edit');
+            Route::post('/bulk-destroy',                                'DepartamentoController@bulkDestroy')->name('bulk-destroy');
+            Route::post('/{departamento}',                              'DepartamentoController@update')->name('update');
+            Route::delete('/{departamento}',                            'DepartamentoController@destroy')->name('destroy');
+        });
+    });
+});
+
+/* Auto-generated admin routes */
+Route::middleware(['auth:' . config('admin-auth.defaults.guard'), 'admin'])->group(static function () {
+    Route::prefix('admin')->namespace('Admin')->name('admin/')->group(static function() {
+        Route::prefix('localidads')->name('localidads/')->group(static function() {
+            Route::get('/',                                             'LocalidadController@index')->name('index');
+            Route::get('/create',                                       'LocalidadController@create')->name('create');
+            Route::post('/',                                            'LocalidadController@store')->name('store');
+            Route::get('/{localidad}/edit',                             'LocalidadController@edit')->name('edit');
+            Route::post('/bulk-destroy',                                'LocalidadController@bulkDestroy')->name('bulk-destroy');
+            Route::post('/{localidad}',                                 'LocalidadController@update')->name('update');
+            Route::delete('/{localidad}',                               'LocalidadController@destroy')->name('destroy');
+        });
+    });
+});
+
+
+/* Auto-generated admin routes */
+Route::middleware(['auth:' . config('admin-auth.defaults.guard'), 'admin'])->group(static function () {
+    Route::prefix('admin')->namespace('Admin')->name('admin/')->group(static function() {
+        Route::prefix('localidades')->name('localidades/')->group(static function() {
+            Route::get('/',                                             'LocalidadesController@index')->name('index');
+            Route::get('/create',                                       'LocalidadesController@create')->name('create');
+            Route::post('/',                                            'LocalidadesController@store')->name('store');
+            Route::get('/{localidade}/edit',                            'LocalidadesController@edit')->name('edit');
+            Route::post('/bulk-destroy',                                'LocalidadesController@bulkDestroy')->name('bulk-destroy');
+            Route::post('/{localidade}',                                'LocalidadesController@update')->name('update');
+            Route::delete('/{localidade}',                              'LocalidadesController@destroy')->name('destroy');
+        });
+    });
+});
+
+/* Auto-generated admin routes */
+Route::middleware(['auth:' . config('admin-auth.defaults.guard'), 'admin'])->group(static function () {
+    Route::prefix('admin')->namespace('Admin')->name('admin/')->group(static function() {
+        Route::prefix('users')->name('users/')->group(static function() {
+            Route::get('/',                                             'UsersController@index')->name('index');
+            Route::get('/create',                                       'UsersController@create')->name('create');
+            Route::post('/',                                            'UsersController@store')->name('store');
+            Route::get('/{user}/edit',                                  'UsersController@edit')->name('edit');
+            Route::post('/{user}',                                      'UsersController@update')->name('update');
+            Route::delete('/{user}',                                    'UsersController@destroy')->name('destroy');
+            Route::get('/{user}/resend-activation',                     'UsersController@resendActivationEmail')->name('resendActivationEmail');
+        });
+    });
+});
