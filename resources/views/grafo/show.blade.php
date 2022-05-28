@@ -1,32 +1,141 @@
 @extends('layouts.app')
 @section('content')
+<?php $masdeun=""; ?>
 <div class="row center"><div class="col-lg-12 text-center">
-<h4><a href="{{ url("/aglo/{$aglomerado->id}") }}" > ({{ $aglomerado->codigo}}) {{ $aglomerado->nombre}}</a></h4>
-<h5>
-@foreach ($radio->localidades->sortBy('codigo') as $loc)
-@if ($loc and substr($loc->codigo,5,3)!='000')
-<a 
-@if ( isSet($localidad) and $loc->id==$localidad->id ) 
-    style="
-        color: #dd8a32;
-      	text-decoration: crimson ;
-      	font-weight: bolder;
-        font-size: 1.2rem;
-      "
+    <h4>
+        <a href="{{ url("/aglo/{$aglomerado->id}") }}" > ({{ $aglomerado->codigo}}) {{ $aglomerado->nombre}}  </a>
+    </h4>
+        <div class="d-flex justify-content-center" >
+             <h5>
+                @foreach ($radio->localidades->sortBy('codigo') as $loc)
+                    @if ($loc and substr($loc->codigo,5,3)!='000')
+                        <a 
+                            @if ( isSet($localidad) and $loc->id==$localidad->id ) 
+                                style="
+                                color: #dd8a32;
+      	                        text-decoration: crimson ;
+      	                        font-weight: bolder;
+                                font-size: 1.2rem;
+                                "
+                            @endif
+                            @else
+                                <i>(parte urbana) </i>
+                            @endif
+                @endforeach 
+              </h5>
+        </div>
+        <div class="d-flex justify-content-center" >
+            <h5>
+                <table> 
+                  <thead >
+                      <tr>
+                          @foreach ($radio->localidades->sortBy('codigo') as $loc)
+                              <th> 
+                                  <h5>      
+                                      @if ($loc and substr($loc->codigo,5,3)!='000')
+                                          <a @if ( isSet($localidad) and $loc->id==$localidad->id ) 
+                                              style="
+                                              color: #dd8a32;
+                                              text-decoration: crimson ;
+                                              font-weight: bolder;
+                                              font-size: 1.2rem;
+                                              "
+                                      @endif
+                                      href="{{ url("/localidad/{$loc->id}") }}" > ({{$loc->codigo}}) {{ $loc->nombre}} 
+                                      @if($loop->count > 1)
+                                          <?php $masdeun=1 ?>
+                                         
+                                          <a href="{{ '#' }}" class="btn btn-danger"   onclick="return Conf1()"> Eliminar relacion con localidad
+                                              <div>
+                                                  <script type="text/javascript">
+                                                      function Conf1(){
+                                                          var respuesta = confirm("Eliminar {{substr($radio->codigo, 0, 2)}} {{ substr($radio->codigo, 2, 3) }} {{substr($radio->codigo, 5, 2)}} {{ substr($radio->codigo, 7, 2) }}, ({{$loc->codigo}}) de la tabla radio_localidad:  delete from radio_localidad where radio_id in (select id from radio where codigo = '{{substr($radio->codigo, 0, 2)}} {{ substr($radio->codigo, 2, 3) }} {{substr($radio->codigo, 5, 2)}} {{ substr($radio->codigo, 7, 2) }}') and localidad_id in (select id from localidad where codigo = ({{$loc->codigo}}) )");
+                                                          //console.log confirm();
+                                                          if(respuesta == true){ 
+                                                              return true;
+                                                          }else{
+                                                             return false;
+                                                          }
+                                                        }            
+                                                    </script>
+                                                </div>
+                                           </a>
+                                       @endif
+                                       </a>
+                                      @endif 
+                                    </h5> 
+                               </th>
+                            @endforeach
+                       </tr>
+                   </thead>
+                <tbody>
+                </tbody>
+              </table>
+            </h5>
+          </div>
+        <h4>Radio: {{ substr($radio->codigo, 0, 2) }} {{ substr($radio->codigo, 2, 3) }} 
+            <b>{{ substr($radio->codigo, 5, 2) }} {{ substr($radio->codigo, 7, 2) }} 
+              <a>
+                  <?php if(!$masdeun) { ?>
+                      <a href="{{ '' }}" class="btn btn-danger"  onclick="return Conf2()"> Eliminar Radio </a>
+                  <?php } ?>
+                  <div>
+                      <script type="text/javascript">
+                          function Conf2(){
+                              var respuesta = confirm("1. Eliminar {{substr($radio->codigo, 0, 2)}} {{ substr($radio->codigo, 2, 3) }} {{substr($radio->codigo, 5, 2)}} {{ substr($radio->codigo, 7, 2) }}, ({{$loc->codigo}}) 2. buscar en que esquemas se encuentra el radio {{substr($radio->codigo, 0, 2)}} {{ substr($radio->codigo, 2, 3) }} {{substr($radio->codigo, 5, 2)}} {{ substr($radio->codigo, 7, 2) }} y reportar que se eliminará de todos ellos     3. Borrar el radio de la tabla radio");
+                            if(respuesta == true){ 
+                                return true;
+                            }else{
+                                return false;
+                            }
+                          }            
+                        </script>
+                    </div>
+                </a> 
+              </b>
+          </h4>
+    @if($radio->tipo)	
+        <p class="text-center">({{ $radio->tipo->nombre }}) {{ $radio->tipo->descripcion }} 
+            @if($radio->tipo->nombre =="M")
+                <a href="{{ '' }}" class="btn btn-danger"  onclick="return Conf3()"> Cambiar a Urbano  </a> 
+            @elseif($radio->tipo->nombre =="U") 
+                <a href="{{ '' }}" class="btn btn-danger"  onclick="return Conf4()"> Cambiar a Mixto </a>
+            @endif              
+         </p> 
+        <div>
+            <script type="text/javascript">
+                  function Conf3()
+                  {
+                    var respuesta = confirm("cambiar tipo_de_radio_id en la tabla radio para el codigo  {{ substr($radio->codigo, 0, 2) }}{{ substr($radio->codigo, 2, 3) }}{{ substr($radio->codigo, 5, 2) }}{{ substr($radio->codigo, 7, 2) }}   ---  update radio set tipo_de_radio_id = 3 where codigo = '{{ substr($radio->codigo, 0, 2) }}{{ substr($radio->codigo, 2, 3) }}{{ substr($radio->codigo, 5, 2) }}{{ substr($radio->codigo, 7, 2) }}';");
+                    if(respuesta == true) 
+                    { 
+                     return true;
+                    }
+                      else
+                    {
+                      return false;
+                    }
+                  }            
+                  function Conf4()
+                  {
+                    var respuesta = confirm("cambiar tipo_de_radio_id en la tabla radio para el codigo  {{ substr($radio->codigo, 0, 2) }} {{ substr($radio->codigo, 2, 3) }} {{ substr($radio->codigo, 5, 2) }} {{ substr($radio->codigo, 7, 2) }} ---  update radio set tipo_de_radio_id = 3 where codigo = '{{ substr($radio->codigo, 0, 2) }}{{ substr($radio->codigo, 2, 3) }}{{ substr($radio->codigo, 5, 2) }}{{ substr($radio->codigo, 7, 2) }}';");
+                    if(respuesta == true) 
+                    { 
+                     return true;
+                    }
+                      else
+                    {
+                      return false;
+                    }
+                  }            
+              </script>
+          </div>
+    @endif
+@if($radio->viviendas)	
+  <p class="text-center">Con {{ $radio->viviendas }} viviendas.</p> 
 @endif
-href="{{ url("/localidad/{$loc->id}") }}" > ({{
-$loc->codigo}}) {{ $loc->nombre}}</a>
-@else
-  <i>(parte urbana)</i>
-@endif
-@endforeach
-</h5>
-<h4>Radio: {{ substr($radio->codigo, 0, 2) }} {{ substr($radio->codigo, 2, 3) }} <b>{{ substr($radio->codigo, 5, 2) }} {{ substr($radio->codigo, 7, 2) }}</b></h4>
-@if($radio->tipo)	<p class="text-center">({{ $radio->tipo->nombre }}) {{ $radio->tipo->descripcion }}</p> @endif
-@if($radio->viviendas)	<p class="text-center">Con {{ $radio->viviendas }} viviendas.</p> @endif
 </div></div>
-  <div class="row">
-    </div>
+  <div class="row"> </div>
 </div>
 @endsection
 @section('content')
