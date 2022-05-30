@@ -1,6 +1,8 @@
 @extends('layouts.app')
 @section('content')
 <?php $masdeun=""; ?>
+<?php $pdfrN=""; ?>
+
 <div class="row center"><div class="col-lg-12 text-center">
     <h4>
         <a href="{{ url("/aglo/{$aglomerado->id}") }}" > ({{ $aglomerado->codigo}}) {{ $aglomerado->nombre}}  </a>
@@ -13,7 +15,9 @@
                             @if ( isSet($localidad) and $loc->id==$localidad->id ) 
                                 style="
                                 color: #dd8a32;
-      	                        text-decoration: crimson ;
+                                function pdata(){
+    
+  }                text-decoration: crimson ;
       	                        font-weight: bolder;
                                 font-size: 1.2rem;
                                 "
@@ -39,27 +43,52 @@
                                               text-decoration: crimson ;
                                               font-weight: bolder;
                                               font-size: 1.2rem;
-                                              "
-                                      @endif
-                                      href="{{ url("/localidad/{$loc->id}") }}" > ({{$loc->codigo}}) {{ $loc->nombre}} 
-                                      @if($loop->count > 1)
+                                            "
+                                            @endif
+                                             href=" {{ url("/localidad/{$loc->id}") }}" > ({{$loc->codigo}}) {{ $loc->nombre}} 
+                                           @if($loop->count > 1)
+                                          
+                                           
+
                                           <?php $masdeun=1 ?>
-                                         
-                                          <a href="{{ '#' }}" class="btn btn-danger"   onclick="return Conf1()"> Eliminar relacion con localidad
-                                              <div>
-                                                  <script type="text/javascript">
-                                                      function Conf1(){
-                                                          var respuesta = confirm("Eliminar {{substr($radio->codigo, 0, 2)}} {{ substr($radio->codigo, 2, 3) }} {{substr($radio->codigo, 5, 2)}} {{ substr($radio->codigo, 7, 2) }}, ({{$loc->codigo}}) de la tabla radio_localidad:  delete from radio_localidad where radio_id in (select id from radio where codigo = '{{substr($radio->codigo, 0, 2)}} {{ substr($radio->codigo, 2, 3) }} {{substr($radio->codigo, 5, 2)}} {{ substr($radio->codigo, 7, 2) }}') and localidad_id in (select id from localidad where codigo = ({{$loc->codigo}}) )");
-                                                          //console.log confirm();
-                                                          if(respuesta == true){ 
-                                                              return true;
-                                                          }else{
-                                                             return false;
-                                                          }
-                                                        }            
-                                                    </script>
-                                                </div>
+
+                                          <a href="{{ '#' }}"    > 
+                                             
                                            </a>
+                                           
+                                           <!-- Button trigger modal -->
+<button type="button" class="btn btn-danger" data-toggle="modal"  data-target="#modelIdRel_Loc">
+  Eliminar relacion con localidad  
+  <!-- {{$loc->codigo}} {{ $loc->nombre}} -->
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="modelIdRel_Loc" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{{$loc->codigo}}</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+      </div>
+      <div class="modal-body">
+      Eliminar {{substr($radio->codigo, 0, 2)}} {{ substr($radio->codigo, 2, 3) }} {{substr($radio->codigo, 5, 2)}}
+       {{ substr($radio->codigo, 7, 2) }}, ({{$loc->codigo}}) de la tabla radio_localidad ''' <br>
+       delete from radio_localidad  <br> where radio_id in (select id from radio where codigo = '{{substr($radio->codigo, 0, 2)}} 
+       {{ substr($radio->codigo, 2, 3) }} {{substr($radio->codigo, 5, 2)}} {{ substr($radio->codigo, 7, 2) }}') <br>
+       and localidad_id in (select id from localidad where codigo ='{{$loc->codigo}}'  
+     <br>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+                                          </div>
                                        @endif
                                        </a>
                                       @endif 
@@ -75,9 +104,45 @@
           </div>
         <h4>Radio: {{ substr($radio->codigo, 0, 2) }} {{ substr($radio->codigo, 2, 3) }} 
             <b>{{ substr($radio->codigo, 5, 2) }} {{ substr($radio->codigo, 7, 2) }} 
-              <a>
+            <a>
+          <!-- Button trigger modal -->
+          <?php if(!$masdeun) { ?>
+                      
+                  
+          <button type="button" class="btn btn-danger btn-lg" data-toggle="modal" data-target="#modelIdElimRadio">
+            Eliminar Radio
+          </button>
+          <?php } ?>
+          <!-- Modal -->
+          <div class="modal fade" id="modelIdElimRadio" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Eliminar Radio</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                        1. Eliminar {{substr($radio->codigo, 0, 2)}} {{ substr($radio->codigo, 2, 3) }} {{substr($radio->codigo, 5, 2)}} 
+                        {{ substr($radio->codigo, 7, 2) }}, ({{$loc->codigo}}) <br> 2. buscar en que esquemas se encuentra el radio {{substr($radio->codigo, 0, 2)}} 
+                        {{ substr($radio->codigo, 2, 3) }} {{substr($radio->codigo, 5, 2)}} {{ substr($radio->codigo, 7, 2) }} y reportar que se eliminará de todos ellos 
+                        <br>3. Borrar el radio de la tabla radio 
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                  
+                </div>
+              </div>
+            </div>
+          </div> 
+          </a>  
+
+
+              <a>   
+
                   <?php if(!$masdeun) { ?>
-                      <a href="{{ '' }}" class="btn btn-danger"  onclick="return Conf2()"> Eliminar Radio </a>
+                      
                   <?php } ?>
                   <div>
                       <script type="text/javascript">
@@ -97,36 +162,71 @@
     @if($radio->tipo)	
         <p class="text-center">({{ $radio->tipo->nombre }}) {{ $radio->tipo->descripcion }} 
             @if($radio->tipo->nombre =="M")
-                <a href="{{ '' }}" class="btn btn-danger"  onclick="return Conf3()"> Cambiar a Urbano  </a> 
+              
+                <!-- Button trigger modal -->
+                <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modelIdCUrbano">
+                  Cambiar a Urbano
+                </button>
+                
+                <!-- Modal -->
+                <div class="modal fade" id="modelIdCUrbano" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+                  <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title">Cambiar a Urbano</h5>
+                          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                          </button>
+                      </div>
+                      <div class="modal-body">
+                      cambiar tipo_de_radio_id en la tabla radio para el codigo  {{ substr($radio->codigo, 0, 2) }}{{ substr($radio->codigo, 2, 3) }}{{ substr($radio->codigo, 5, 2) }}{{ substr($radio->codigo, 7, 2) }}   ---  update radio set tipo_de_radio_id = 3 where codigo = '{{ substr($radio->codigo, 0, 2) }}{{ substr($radio->codigo, 2, 3) }}{{ substr($radio->codigo, 5, 2) }}{{ substr($radio->codigo, 7, 2) }}';
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary">Save</button>
+                      </div>
+                    </div>
+                  </div>
+                </div> 
             @elseif($radio->tipo->nombre =="U") 
-                <a href="{{ '' }}" class="btn btn-danger"  onclick="return Conf4()"> Cambiar a Mixto </a>
+
+              
+                <!-- Button trigger modal -->
+                <button type="button" class="btn btn-danger btn-lg" data-toggle="modal" data-target="#modelIdCMixto">
+                  Cambiar a Mixto
+                </button>
+                
+                <!-- Modal -->
+                <div class="modal fade" id="modelIdCMixto" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+                  <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title">Modal title</h5>
+                          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                          </button>
+                      </div>
+                      <div class="modal-body">
+                      cambiar tipo_de_radio_id en la tabla radio para el codigo  {{ substr($radio->codigo, 0, 2) }}{{ substr($radio->codigo, 2, 3) }}{{ substr($radio->codigo, 5, 2) }}{{ substr($radio->codigo, 7, 2) }}   ---  update radio set tipo_de_radio_id = 3 where codigo = '{{ substr($radio->codigo, 0, 2) }}{{ substr($radio->codigo, 2, 3) }}{{ substr($radio->codigo, 5, 2) }}{{ substr($radio->codigo, 7, 2) }}';
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary">Save</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
             @endif              
          </p> 
         <div>
             <script type="text/javascript">
                   function Conf3()
                   {
-                    var respuesta = confirm("cambiar tipo_de_radio_id en la tabla radio para el codigo  {{ substr($radio->codigo, 0, 2) }}{{ substr($radio->codigo, 2, 3) }}{{ substr($radio->codigo, 5, 2) }}{{ substr($radio->codigo, 7, 2) }}   ---  update radio set tipo_de_radio_id = 3 where codigo = '{{ substr($radio->codigo, 0, 2) }}{{ substr($radio->codigo, 2, 3) }}{{ substr($radio->codigo, 5, 2) }}{{ substr($radio->codigo, 7, 2) }}';");
-                    if(respuesta == true) 
-                    { 
-                     return true;
-                    }
-                      else
-                    {
-                      return false;
-                    }
+                    
                   }            
                   function Conf4()
                   {
-                    var respuesta = confirm("cambiar tipo_de_radio_id en la tabla radio para el codigo  {{ substr($radio->codigo, 0, 2) }} {{ substr($radio->codigo, 2, 3) }} {{ substr($radio->codigo, 5, 2) }} {{ substr($radio->codigo, 7, 2) }} ---  update radio set tipo_de_radio_id = 3 where codigo = '{{ substr($radio->codigo, 0, 2) }}{{ substr($radio->codigo, 2, 3) }}{{ substr($radio->codigo, 5, 2) }}{{ substr($radio->codigo, 7, 2) }}';");
-                    if(respuesta == true) 
-                    { 
-                     return true;
-                    }
-                      else
-                    {
-                      return false;
-                    }
+                   
                   }            
               </script>
           </div>
