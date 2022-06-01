@@ -13,14 +13,7 @@
                     @if ($loc and substr($loc->codigo,5,3)!='000')
                         <a 
                             @if ( isSet($localidad) and $loc->id==$localidad->id ) 
-                                style="
-                                color: #dd8a32;
-                                function pdata(){
-    
-  }                text-decoration: crimson ;
-      	                        font-weight: bolder;
-                                font-size: 1.2rem;
-                                "
+                               
                             @endif
                             @else
                                 <i>(parte urbana) </i>
@@ -47,10 +40,7 @@
                                             @endif
                                              href=" {{ url("/localidad/{$loc->id}") }}" > ({{$loc->codigo}}) {{ $loc->nombre}} 
                                            @if($loop->count > 1)
-                                          
-                                           
-
-                                          <?php $masdeun=1 ?>
+                                           <?php $masdeun=1 ?>
 
                                           <a href="{{ '#' }}"    > 
                                              
@@ -91,6 +81,7 @@
                                           </div>
                                        @endif
                                        </a>
+                                       <!-- <a class="nav-link" href="{{ url('/edicion') }}"> Edición </a> -->
                                       @endif 
                                     </h5> 
                                </th>
@@ -173,7 +164,7 @@
                   <div class="modal-dialog" role="document">
                     <div class="modal-content">
                       <div class="modal-header">
-                        <h5 class="modal-title">Cambiar a Urbano</h5>
+                        <h5 class="modal-title">Cambiar Tipo de Radio</h5>
                           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                           </button>
@@ -183,7 +174,6 @@
                       </div>
                       <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary">Save</button>
                       </div>
                     </div>
                   </div>
@@ -201,17 +191,16 @@
                   <div class="modal-dialog" role="document">
                     <div class="modal-content">
                       <div class="modal-header">
-                        <h5 class="modal-title">Modal title</h5>
+                        <h5 class="modal-title">Cambiar tipo de Radio</h5>
                           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                           </button>
                       </div>
                       <div class="modal-body">
-                      cambiar tipo_de_radio_id en la tabla radio para el codigo  {{ substr($radio->codigo, 0, 2) }}{{ substr($radio->codigo, 2, 3) }}{{ substr($radio->codigo, 5, 2) }}{{ substr($radio->codigo, 7, 2) }}   ---  update radio set tipo_de_radio_id = 3 where codigo = '{{ substr($radio->codigo, 0, 2) }}{{ substr($radio->codigo, 2, 3) }}{{ substr($radio->codigo, 5, 2) }}{{ substr($radio->codigo, 7, 2) }}';
+                        cambiar tipo_de_radio_id en la tabla radio para el codigo  {{ substr($radio->codigo, 0, 2) }}{{ substr($radio->codigo, 2, 3) }}{{ substr($radio->codigo, 5, 2) }}{{ substr($radio->codigo, 7, 2) }}   ---  update radio set tipo_de_radio_id = 3 where codigo = '{{ substr($radio->codigo, 0, 2) }}{{ substr($radio->codigo, 2, 3) }}{{ substr($radio->codigo, 5, 2) }}{{ substr($radio->codigo, 7, 2) }}';
                       </div>
                       <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary">Save</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>           
                       </div>
                     </div>
                   </div>
@@ -219,15 +208,7 @@
             @endif              
          </p> 
         <div>
-            <script type="text/javascript">
-                  function Conf3()
-                  {
-                    
-                  }            
-                  function Conf4()
-                  {
-                   
-                  }            
+            <script type="text/javascript">          
               </script>
           </div>
     @endif
