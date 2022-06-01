@@ -16,8 +16,8 @@
       Usuario no identificado ! Identifiquese o retirese por favor.<br />
     @endif
     @if (isset($localidad))
-     Localidad (<a href="{{ url("/localidad/{$localidad->id}") }}" >{{ $localidad->codigo }}) 
-     <b> {{ $localidad->nombre }} </b></a><br />
+     Localidad (<a href="{{ url("/localidad/{$localidad->id}") }}" >{{ $localidad->codigo }} 
+     <b> {{ $localidad->nombre }} </b></a>)<br />
     @else
       NO está definida ningúna localidad.<br />
     @endif
