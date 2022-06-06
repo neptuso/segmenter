@@ -1974,5 +1974,171 @@ order by 1,2
        return 'Se actualizo r3 con '.$result.' registros';
     }
 
+    // Junta Manzanas de todos los esquemas.
+    public static function juntaManzanas($filtro=null)
+    {
+        try{
+            DB::beginTransaction();
+            if (Schema::hasTable('public.manzanas')) {
+              DB::statement("DROP TABLE public.manzanas;");
+            }
+            DB::statement("CREATE TABLE public.manzanas AS SELECT * FROM indec.manzanas();");
+            $result = DB::select("SELECT Count(*) from manzanas;")[0]->count;
+            self::darPermisosTabla('manzanas');
+            self::createIndex('public','manzanas','prov,dpto,frac,radio,mza');
+            self::createIndex('public','manzanas','wkb_geometry','gist');
+            DB::commit();
+            // Tabla con geometría de localdiad y conteo de manzanas
+            DB::beginTransaction();
+            if (Schema::hasTable('public.localidad_geo')) {
+              DB::statement("DROP TABLE public.localidad_geo;");
+            }
+            DB::statement("
+                CREATE TABLE public.localidad_geo AS 
+                select st_union(wkb_geometry) wkb_geometry, prov, dpto, codloc, 
+                max(l.nombre) nombre,
+                sum(conteo) conteo, count(*) manzanas from public.manzanas 
+                left join public.localidad l on l.codigo=prov||dpto||codloc
+                group by prov, dpto, codloc order by prov, dpto, codloc;"
+            );
+            self::darPermisosTabla('localidad_geo');
+            self::createIndex('public','localidad_geo','prov,dpto,codloc');
+            self::createIndex('public','localidad_geo','wkb_geometry','gist');
+            DB::commit();
+        }catch(QueryException $e){
+            DB::Rollback();
+            $result=null;
+            Log::error('Error no se pudo actualizar las Manzanas '.$filtro.$e);
+            return 'Manzanas sin actualizar';
+       }
+       return 'Se actualizo manzanas con '.$result.' registros';
+    }
+
+    // Junta Vias de todos los esquemas.
+    public static function juntaVias($filtro=null)
+    {
+        try{
+            DB::beginTransaction();
+            if (Schema::hasTable('public.vias')) {
+              DB::statement("DROP TABLE public.vias;");
+            }
+            DB::statement("CREATE TABLE public.vias AS SELECT * FROM indec.vias();");
+            $result = DB::select("SELECT Count(*) from vias;")[0]->count;
+            self::darPermisosTabla('vias');
+            self::createIndex('public','vias','codloc');
+            self::createIndex('public','vias','geom','gist');
+            DB::commit();
+        }catch(QueryException $e){
+            DB::Rollback();
+            $result=null;
+            Log::error('Error no se pudo actualizar las Vias '.$filtro.$e);
+            return 'Vias sin actualizar';
+       }
+       return 'Se actualizo vias con '.$result.' registros';
+    }
+
+    // MVT de manzanas
+    //
+    public static function mvtManzanas(Provincia $oProv)
+    {
+      if( isset($oProv) ){
+        try{
+            $result = DB::select("select prov,dpto,d.nombre,codloc,l.nombre,
+                                     count(distinct frac::text||'-'||radio::text) radios_m_u ,
+                                     count(*) segmentos,
+                                     sum(viviendas) vivs, 
+                                     round(1.0*sum(viviendas)/count(*),2) prom
+                                     from r3 join departamentos d on 
+                                        d.codigo=lpad(prov::text,2,'0')||lpad(dpto::text,3,'0') 
+                                     join localidad l on 
+                                       l.codigo=lpad(prov::text,2,'0')||lpad(dpto::text,3,'0')||lpad(codloc::text,3,'0') 
+                                     join radio r on 
+                                       r.codigo=lpad(prov::text,2,'0')||lpad(dpto::text,3,'0')||lpad(frac::text,2,'0')||lpad(radio::text,2,'0') 
+                                     WHERE r.tipo_de_radio_id in (1,3) and prov='".$oProv->codigo."' and seg!='90' group by 1,2,3,4,5 ;");
+        }catch(QueryException $e){
+                $result=null;
+                Log::error('No se pudo generar resuemn de la provincia ',[$oProv],$e);
+            }
+            Log::debug('Se consulto resumen de provincia '.$oProv->codigo);
+            return $result;
+       }else{
+          try {
+              $result = DB::select("select prov,dpto,codloc,frac,radio,mza,ST_AsMVT(wkb_geometry) from manzanas");
+          } catch (QueryException $e) {
+              $result=null;
+              Log::error('No se pudo generar resuemn de la provincia ',[$oProv],$e);
+          }
+          return $result;
+          return 'no se seleccionó Provincia';
+       }
+    }
+
+    // Junta arc de todos los esquemas en public.cuadras.
+    public static function juntaCuadras($filtro=null)
+    {
+        try{
+            DB::beginTransaction();
+            if (Schema::hasTable('public.cuadras')) {
+              DB::statement("DROP TABLE public.cuadras;");
+            }
+            DB::statement("CREATE TABLE public.cuadras AS SELECT * FROM indec.cuadras();");
+            $result = DB::select("SELECT Count(*) from cuadras;")[0]->count;
+            self::darPermisosTabla('cuadras');
+            self::createIndex('public','cuadras','codloc20');
+            self::createIndex('public','cuadras','nombre');
+            self::createIndex('public','cuadras','geom','gist');
+            DB::commit();
+        }catch(QueryException $e){
+            DB::Rollback();
+            $result=null;
+            Log::error('Error no se pudo actualizar las Cuadras '.$filtro.$e);
+            return 'Cuadras sin actualizar';
+       }
+       return 'Se actualizo cuadras con '.$result.' registros';
+    }
+
+    public static function radiosDeListados()
+    {
+        try{
+            DB::beginTransaction();
+            if (Schema::hasTable('public.radios_de_listados')) {
+              DB::statement("DROP TABLE public.radios_de_listados;");
+            }
+            DB::statement("CREATE TABLE public.radios_de_listados AS SELECT * FROM indec.radios_de_listados();");
+            $result = DB::select("SELECT Count(*) from radios_de_listados;")[0]->count;
+            self::darPermisosTabla('radios_de_listados');
+            self::createIndex('public','radios_de_listados','radio');
+            self::createIndex('public','radios_de_listados','localidad');
+            DB::commit();
+        }catch(QueryException $e){
+            DB::Rollback();
+            $result=null;
+            Log::error('Error no se pudo actualizar los Radios de ePPDDDLLL.listados '.$e);
+            return 'Radios de ePPDDDLLL.listados sin actualizar';
+       }
+       return 'Se actualizo radios_de_listados con '.$result.' registros';
+    }
+
+    public static function radiosDeArcs()
+    {
+        try{
+            DB::beginTransaction();
+            if (Schema::hasTable('public.radios_de_arcs')) {
+              DB::statement("DROP TABLE public.radios_de_arcs;");
+            }
+            DB::statement("CREATE TABLE public.radios_de_arcs AS SELECT * FROM indec.radios_de_arcs();");
+            $result = DB::select("SELECT Count(*) from radios_de_arcs;")[0]->count;
+            self::darPermisosTabla('radios_de_arcs');
+            self::createIndex('public','radios_de_arcs','radio');
+            self::createIndex('public','radios_de_arcs','localidad');
+            DB::commit();
+        }catch(QueryException $e){
+            DB::Rollback();
+            $result=null;
+            Log::error('Error no se pudo actualizar los Radios de ePPDDDLLL.arcs '.$e);
+            return 'Radios de ePPDDDLLL.arcs sin actualizar';
+       }
+       return 'Se actualizo radios_de_arcs con '.$result.' registros';
+    }
 }
 
