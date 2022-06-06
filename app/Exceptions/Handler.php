@@ -3,7 +3,6 @@
 namespace App\Exceptions;
 
 use Exception;
-use App\Exception\GeoestadisticaException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 
 class Handler extends ExceptionHandler
