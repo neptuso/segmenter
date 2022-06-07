@@ -347,7 +347,7 @@ class LocalidadController extends Controller
     public function destroy(Localidad $localidad)
     {
         dd ('Eliminar '. $localidad->codigo . ' de la tabla radio_localidad....... ');
-        //eliminar PPDDDFFRR, PPDDDLLL de la tabla radio_localidad);
+
        
     }
 }

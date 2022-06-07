@@ -81,5 +81,7 @@ class RadioLocalidadController extends Controller
     public function destroy(RadioLocalidad $radioLocalidad)
     {
         //
+        dd ('- prueba -eliminar Relacion con  RadioLocalidad controler');
+
     }
 }

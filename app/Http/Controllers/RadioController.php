@@ -99,9 +99,8 @@ class RadioController extends Controller
      */
     public function destroy(Radio $radio)
     {
-        //dd ('está por eliminar el radio '. $radio);
-        //dd ('separador');
-        dd ('eliminar ' . $radio .  'el radio texto '        . $radio->codigo);
+        
+        dd ('eliminar ' . $radio->nombre .  'de la tabla radio_localidad ...'         );
        
     }
 

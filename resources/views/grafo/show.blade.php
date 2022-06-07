@@ -1,75 +1,73 @@
 @extends('layouts.app')
 @section('content')
-<?php $masdeun=""; ?>
 
-<div class="row center"><div class="col-lg-12 text-center">
-<h4><a href="{{ url("/aglo/{$aglomerado->id}") }}" > ({{ $aglomerado->codigo}}) {{ $aglomerado->nombre}}</a></h4>
+<div class = "row center"><div class = "col-lg-12 text-center">
+<h4><a href = "{{ url("/aglo/{$aglomerado->id}") }}" > ({{ $aglomerado->codigo}}) {{ $aglomerado->nombre}}</a></h4>
+
+
+<h4>Radio: {{ substr($radio->codigo, 0, 2) }} {{ substr($radio->codigo, 2, 3) }} 
+    <b>
+        {{ substr($radio->codigo, 5, 2) }} {{ substr($radio->codigo, 7, 2) }}
+    </b>
+    @if($radio->localidades->count() == 1)
+      <form method = "POST" action = "{{route('EliminarRadio',$radio)}}">
+          {{ csrf_field() }}
+          {{ method_field('DELETE') }}
+          <div class = " form-group">
+              <input type = "submit" class = "btn btn-danger" value = "Eliminar Radio">
+          </div>
+      </form>
+    @endif
+</h4>
+
+@if($radio->tipo)	
+    <p class = "text-center">({{ $radio->tipo->nombre }}) {{ $radio->tipo->descripcion }} 
+        @if($radio->tipo->nombre == "M")
+          <button type = "button" class="btn btn-danger" data-toggle = "modal" data-target = "#modelId">
+              Cambiar a Urbano
+          </button>
+        @elseif($radio->tipo->nombre == "U") 
+            <button type = "button" class = "btn btn-danger" data-toggle = "modal" data-target = "#modelId">
+                Cambiar a Mixto 
+            </button>
+        @endif              
+      </p>    
+@endif
 <h5>
-<div class="d-flex justify-content-around" >  
+<div class = "d-flex justify-content-around" >  
+
 @foreach ($radio->localidades->sortBy('codigo') as $loc)
   
-        @if ($loc and substr($loc->codigo,5,3)!='000')
+        @if ($loc and substr($loc->codigo,5,3) != '000')
         <div> 
                 <a 
-                    @if ( $loc->id==$localidad->id ) 
-                      style="
+                    @if ( $loc->id == $localidad->id ) 
+                      style = "
                       color: #dd8a32;
                       text-decoration: crimson ;
                       font-weight: bolder;
                       font-size: 1.2rem;
                       "
                     @endif
-                    href="{{ url("/localidad/{$loc->id}") }}" > 
+                    href = "{{ url("/localidad/{$loc->id}") }}" > 
                     ({{$loc->codigo}}) {{ $loc->nombre}}
                 </a>
-                    @if ($loc->id!==$localidad->id)
-                          <form method="POST" action="{{route('EliminarLoc',$loc->id,$aglomerado)}}">
+                    @if ($loc->id !== $localidad->id)
+                          <form method = "POST" action = "{{route('EliminarLoc',$loc->id,$aglomerado)}}">
                               {{ csrf_field() }}  {{ method_field('DELETE') }}
-                              <div class="form-group">
-                                  <input type="submit" class="btn btn-danger" value="Eliminar Relacion con localidad">
+                              <div class = "form-group">
+                                  <input type = "submit" class = "btn btn-danger" value = "Eliminar Relacion con localidad">
                               </div>
                           </form>
                      @endif
         </div>
-        @else
-          <i>(parte urbana)</i>
-          <br>
-        @endif
-        @if($loop->count > 1)
-              <?php $masdeun = 1 ?>
+       
         @endif
     @endforeach
 </div>
 </h5>
 
-<h4>Radio: {{ substr($radio->codigo, 0, 2) }} {{ substr($radio->codigo, 2, 3) }} 
-    <b>
-        {{ substr($radio->codigo, 5, 2) }} {{ substr($radio->codigo, 7, 2) }}
-    </b>
-    <?php if(!$masdeun) { ?>
-      <form method="POST" action="{{route('EliminarRadio',$radio)}}">
-                              {{ csrf_field() }}
-                              {{ method_field('DELETE') }}
-                              <div class="form-group">
-                                  <input type="submit" class="btn btn-danger" value="Eliminar Radio">
-                              </div>
-      </form>
-     <?php } ?>
-</h4>
 
-@if($radio->tipo)	
-    <p class="text-center">({{ $radio->tipo->nombre }}) {{ $radio->tipo->descripcion }} 
-        @if($radio->tipo->nombre =="M")
-          <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modelId">
-              Cambiar a Urbano
-          </button>
-        @elseif($radio->tipo->nombre =="U") 
-            <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modelId">
-                Cambiar a Mixto 
-            </button>
-        @endif              
-      </p>    
-@endif
 
     <!-- Modal -->
     <div class="modal fade" id="modelId" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
@@ -84,10 +82,10 @@
           <div class="modal-body">
             <div class="container-fluid">
 
-            @if($radio->tipo->nombre =="M")
+            @if($radio->tipo->nombre == "M")
               cambiar tipo_de_radio_id en la tabla radio para el codigo {{$radio->codigo}}  
                  update radio set tipo_de_radio_id = 3 where codigo = '{{ $radio->codigo }}';
-            @elseif($radio->tipo->nombre =="U")
+            @elseif($radio->tipo->nombre == "U")
             <div class="modal-body">
               cambiar tipo_de_radio_id en la tabla radio para el codigo {{$radio->codigo}}   
                  update radio set tipo_de_radio_id = 1 where codigo = '{{ $radio->codigo}}';
@@ -146,26 +144,26 @@
 </style>
 @endsection
 @section('content_main')
-<div class="container-xl" >
-    <div class="no-gutters row ">
-    @forelse ($segmentacion_data_listado as $segmento)
-      @if($loop->first)
-        <div class="no-gutters row ">
-           Se encontraron {{ $loop->count }} segmentos.
-	</div>
-       <div class="table">
-        <div class="row ">
-            <div class="col-sm-1 text-center border"> Seg </div>
-            <div class="col-sm-10 text-center border"> Descripción </div>
-            <div class="col-sm-1 text-center border"> Viviendas </div>
-	</div>
-      @endif
-        <div class="row border">
-        <div class="col-sm-1 ">{{ $segmento->seg }}</div>
-        <div class="col-sm-10 ">{!! str_replace(". Manzana ",".<br/>Manzana ",
+<div class = "container-xl" >
+    <div class = "no-gutters row ">
+        @forelse ($segmentacion_data_listado as $segmento)
+            @if($loop->first)
+                <div class = "no-gutters row ">
+                    Se encontraron {{ $loop->count }} segmentos.
+	              </div>
+                <div class = "table">
+                <div class = "row ">
+                <div class = "col-sm-1 text-center border"> Seg </div>
+                <div class = "col-sm-10 text-center border"> Descripción </div>
+                <div class = "col-sm-1 text-center border"> Viviendas </div>
+	    </div>
+        @endif
+        <div class = "row border">
+        <div class = "col-sm-1 ">{{ $segmento->seg }}</div>
+        <div class = "col-sm-10 ">{!! str_replace(". Manzana ",".<br/>Manzana ",
                                             str_replace(".  ",".<br/>",$segmento->detalle))  !!}</div>
-        <div class="col-sm-1 text-right "><p class="text-right">{{ $segmento->vivs }}</p></div>
-	</div>
+        <div class = "col-sm-1 text-right "><p class = "text-right">{{ $segmento->vivs }}</p></div>
+	  </div>
        @if($loop->last)
        </div>
        @endif
