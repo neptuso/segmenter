@@ -1,30 +1,118 @@
 @extends('layouts.app')
 @section('content')
+<?php $masdeun=""; ?>
+
 <div class="row center"><div class="col-lg-12 text-center">
 <h4><a href="{{ url("/aglo/{$aglomerado->id}") }}" > ({{ $aglomerado->codigo}}) {{ $aglomerado->nombre}}</a></h4>
 <h5>
+<div class="d-flex justify-content-around" >  
 @foreach ($radio->localidades->sortBy('codigo') as $loc)
-@if ($loc and substr($loc->codigo,5,3)!='000')
-<a 
-@if ( $loc->id==$localidad->id ) 
-    style="
-        color: #dd8a32;
-      	text-decoration: crimson ;
-      	font-weight: bolder;
-        font-size: 1.2rem;
-      "
-@endif
-href="{{ url("/localidad/{$loc->id}") }}" > ({{
-$loc->codigo}}) {{ $loc->nombre}}</a>
-@else
-  <i>(parte urbana)</i>
-@endif
-@endforeach
+  
+        @if ($loc and substr($loc->codigo,5,3)!='000')
+        <div> 
+                <a 
+                    @if ( $loc->id==$localidad->id ) 
+                      style="
+                      color: #dd8a32;
+                      text-decoration: crimson ;
+                      font-weight: bolder;
+                      font-size: 1.2rem;
+                      "
+                    @endif
+                    href="{{ url("/localidad/{$loc->id}") }}" > 
+                    ({{$loc->codigo}}) {{ $loc->nombre}}
+                </a>
+                    @if ($loc->id!==$localidad->id)
+                          <form method="POST" action="{{route('EliminarLoc',$loc->id,$aglomerado)}}">
+                              {{ csrf_field() }}  {{ method_field('DELETE') }}
+                              <div class="form-group">
+                                  <input type="submit" class="btn btn-danger" value="Eliminar Relacion con localidad">
+                              </div>
+                          </form>
+                     @endif
+        </div>
+        @else
+          <i>(parte urbana)</i>
+          <br>
+        @endif
+        @if($loop->count > 1)
+              <?php $masdeun = 1 ?>
+        @endif
+    @endforeach
+</div>
 </h5>
-<h4>Radio: {{ substr($radio->codigo, 0, 2) }} {{ substr($radio->codigo, 2, 3) }} <b>{{ substr($radio->codigo, 5, 2) }} {{ substr($radio->codigo, 7, 2) }}</b></h4>
-@if($radio->tipo)	<p class="text-center">({{ $radio->tipo->nombre }}) {{ $radio->tipo->descripcion }}</p> @endif
+
+<h4>Radio: {{ substr($radio->codigo, 0, 2) }} {{ substr($radio->codigo, 2, 3) }} 
+    <b>
+        {{ substr($radio->codigo, 5, 2) }} {{ substr($radio->codigo, 7, 2) }}
+    </b>
+    <?php if(!$masdeun) { ?>
+      <form method="POST" action="{{route('EliminarRadio',$radio)}}">
+                              {{ csrf_field() }}
+                              {{ method_field('DELETE') }}
+                              <div class="form-group">
+                                  <input type="submit" class="btn btn-danger" value="Eliminar Radio">
+                              </div>
+      </form>
+     <?php } ?>
+</h4>
+
+@if($radio->tipo)	
+    <p class="text-center">({{ $radio->tipo->nombre }}) {{ $radio->tipo->descripcion }} 
+        @if($radio->tipo->nombre =="M")
+          <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modelId">
+              Cambiar a Urbano
+          </button>
+        @elseif($radio->tipo->nombre =="U") 
+            <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modelId">
+                Cambiar a Mixto 
+            </button>
+        @endif              
+      </p>    
+@endif
+
+    <!-- Modal -->
+    <div class="modal fade" id="modelId" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"> Cambiar Tipo de Radio                </h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+              </div>
+          <div class="modal-body">
+            <div class="container-fluid">
+
+            @if($radio->tipo->nombre =="M")
+              cambiar tipo_de_radio_id en la tabla radio para el codigo {{$radio->codigo}}  
+                 update radio set tipo_de_radio_id = 3 where codigo = '{{ $radio->codigo }}';
+            @elseif($radio->tipo->nombre =="U")
+            <div class="modal-body">
+              cambiar tipo_de_radio_id en la tabla radio para el codigo {{$radio->codigo}}   
+                 update radio set tipo_de_radio_id = 1 where codigo = '{{ $radio->codigo}}';
+            @endif
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <script>
+      $('#exampleModal').on('show.bs.modal', event => {
+        var button = $(event.relatedTarget);
+        var modal = $(this);
+        // Use above variables to manipulate the DOM
+        
+      });
+    </script>
 @if($radio->viviendas)	<p class="text-center">Con {{ $radio->viviendas }} viviendas.</p> @endif
-</div></div>
+
+</div>
+</div>
   <div class="row">
     </div>
 </div>
