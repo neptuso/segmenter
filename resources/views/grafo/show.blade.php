@@ -4,7 +4,6 @@
 <div class = "row center"><div class = "col-lg-12 text-center">
 <h4><a href = "{{ url("/aglo/{$aglomerado->id}") }}" > ({{ $aglomerado->codigo}}) {{ $aglomerado->nombre}}</a></h4>
 
-
 <h4>Radio: {{ substr($radio->codigo, 0, 2) }} {{ substr($radio->codigo, 2, 3) }} 
     <b>
         {{ substr($radio->codigo, 5, 2) }} {{ substr($radio->codigo, 7, 2) }}
@@ -44,7 +43,7 @@
                     @if ( $loc->id == $localidad->id ) 
                       style = "
                       color: #dd8a32;
-                      text-decoration: crimson ;
+                      text-decoration: crimson;
                       font-weight: bolder;
                       font-size: 1.2rem;
                       "
@@ -53,21 +52,16 @@
                     ({{$loc->codigo}}) {{ $loc->nombre}}
                 </a>
                     @if ($loc->id !== $localidad->id)
-                          <form method = "POST" action = "{{route('EliminarLoc',$loc->id,$aglomerado)}}">
-                              {{ csrf_field() }}  {{ method_field('DELETE') }}
-                              <div class = "form-group">
-                                  <input type = "submit" class = "btn btn-danger" value = "Eliminar Relacion con localidad">
-                              </div>
-                          </form>
-                     @endif
-        </div>
-       
+                          <button type="button" onclick="EliminarRelacionLocalidad({{$radio->codigo}}, {{$loc->codigo}})" class="btn btn-danger" data-toggle="modal" data-target="#modelId1">
+                            Eliminar Relacion con Localidad
+                          </button>
+
+                    @endif
+        </div>       
         @endif
     @endforeach
 </div>
 </h5>
-
-
 
     <!-- Modal -->
     <div class="modal fade" id="modelId" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
@@ -81,17 +75,16 @@
               </div>
           <div class="modal-body">
             <div class="container-fluid">
-
-            @if($radio->tipo->nombre == "M")
-              cambiar tipo_de_radio_id en la tabla radio para el codigo {{$radio->codigo}}  
-                 update radio set tipo_de_radio_id = 3 where codigo = '{{ $radio->codigo }}';
-            @elseif($radio->tipo->nombre == "U")
-            <div class="modal-body">
-              cambiar tipo_de_radio_id en la tabla radio para el codigo {{$radio->codigo}}   
+                @if($radio->tipo->nombre == "M")
+                  cambiar tipo_de_radio_id en la tabla radio para el codigo {{$radio->codigo}}  
+                  update radio set tipo_de_radio_id = 3 where codigo = '{{ $radio->codigo }}';
+                @elseif($radio->tipo->nombre == "U")
+             <div class="modal-body">
+                 cambiar tipo_de_radio_id en la tabla radio para el codigo {{$radio->codigo}}   
                  update radio set tipo_de_radio_id = 1 where codigo = '{{ $radio->codigo}}';
             @endif
             </div>
-          </div>
+            </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
           </div>
@@ -118,13 +111,7 @@
 @section('content')
 @endsection
 @section('header_scripts')
-<!-- script src="https://unpkg.com/numeric/numeric-1.2.6.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.14.0/cytoscape.min.js"></script>
-<script src="https://unpkg.com/layout-base/layout-base.js"></script>
-<script src="https://unpkg.com/cose-base/cose-base.js"></script>
-<script src="/js/cytoscape-fcose.js"></script>
-<script src="/js/cytoscape-cola.js"></script>
-<script src="/js/cola.min.js"></script -->
+
 <style>
 #grafo_cy {
   width: 480px;
@@ -211,25 +198,28 @@
       matrixGroup.setAttributeNS(null, "transform", newMatrix);
     }
 
+    function EliminarRelacionLocalidad($radio,$localidad){
+    alert( $radio +  "   ---    " +$localidad);
+    }
 
-function zoom(scale) {
-  for (var i = 0; i < 4; i++) {
-    transformMatrix[i] *= scale;
-  }
-  transformMatrix[4] += (1 - scale) * centerX;
-  transformMatrix[5] += (1 - scale) * centerY;  
+    function zoom(scale) {
+      for (var i = 0; i < 4; i++) {
+        transformMatrix[i] *= scale;
+      }
+      transformMatrix[4] += (1 - scale) * centerX;
+      transformMatrix[5] += (1 - scale) * centerY;  
 
-  svg.viewBox.baseVal.x*=scale;
-  svg.viewBox.baseVal.y*=scale;
-//  transformMatrix[4] = centerX;
-//  transformMatrix[5] = centerY;
-		        
-  var newMatrix = "matrix(" +  transformMatrix.join(' ') + ")";
-  matrixGroup.setAttributeNS(null, "transform", newMatrix);
-  console.log(svg.getAttributeNS(null, "viewBox").split(" "));
-  console.log(scale);
-  console.log(transformMatrix);
-}
+      svg.viewBox.baseVal.x*=scale;
+      svg.viewBox.baseVal.y*=scale;
+      //  transformMatrix[4] = centerX;
+      //  transformMatrix[5] = centerY;
+              
+      var newMatrix = "matrix(" +  transformMatrix.join(' ') + ")";
+      matrixGroup.setAttributeNS(null, "transform", newMatrix);
+      console.log(svg.getAttributeNS(null, "viewBox").split(" "));
+      console.log(scale);
+      console.log(transformMatrix);
+    }
 
 
     let arrayOfClusterArrays = @json($segmentacion) ;  
