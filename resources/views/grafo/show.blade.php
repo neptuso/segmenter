@@ -76,12 +76,16 @@
           <div class="modal-body">
             <div class="container-fluid">
                 @if($radio->tipo->nombre == "M")
-                  cambiar tipo_de_radio_id en la tabla radio para el codigo {{$radio->codigo}}  
-                  update radio set tipo_de_radio_id = 3 where codigo = '{{ $radio->codigo }}';
+                  <p>cambiar tipo_de_radio_id en la tabla radio para el codigo {{$radio->codigo}} </p>
+                  
+                  <code>update radio set tipo_de_radio_id = 3 where codigo = '{{ $radio->codigo}}';</code>
+
                 @elseif($radio->tipo->nombre == "U")
              <div class="modal-body">
-                 cambiar tipo_de_radio_id en la tabla radio para el codigo {{$radio->codigo}}   
-                 update radio set tipo_de_radio_id = 1 where codigo = '{{ $radio->codigo}}';
+                <p>cambiar tipo_de_radio_id en la tabla radio para el codigo {{$radio->codigo}} </p>  
+
+                <code>update radio set tipo_de_radio_id = 1 where codigo = '{{ $radio->codigo}}';</code>
+
             @endif
             </div>
             </div>
