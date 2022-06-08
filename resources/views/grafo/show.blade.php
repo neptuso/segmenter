@@ -74,14 +74,14 @@
                   </button>
               </div>
           <div class="modal-body">
-            <div class="container-fluid">
+            <div class="container-fluid" align="left">
                 @if($radio->tipo->nombre == "M")
                   <p>cambiar tipo_de_radio_id en la tabla radio para el codigo {{$radio->codigo}} </p>
                   
                   <code>update radio set tipo_de_radio_id = 3 where codigo = '{{ $radio->codigo}}';</code>
 
                 @elseif($radio->tipo->nombre == "U")
-             <div class="modal-body">
+             <div class="modal-body" align="left">
                 <p>cambiar tipo_de_radio_id en la tabla radio para el codigo {{$radio->codigo}} </p>  
 
                 <code>update radio set tipo_de_radio_id = 1 where codigo = '{{ $radio->codigo}}';</code>
