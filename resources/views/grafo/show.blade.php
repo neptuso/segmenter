@@ -9,13 +9,11 @@
         {{ substr($radio->codigo, 5, 2) }} {{ substr($radio->codigo, 7, 2) }}
     </b>
     @if($radio->localidades->count() == 1)
-      <form method = "POST" action = "{{route('EliminarRadio',$radio)}}">
-          {{ csrf_field() }}
-          {{ method_field('DELETE') }}
-          <div class = " form-group">
-              <input type = "submit" class = "btn btn-danger" value = "Eliminar Radio">
-          </div>
-      </form>
+      @foreach ($radio->localidades->sortBy('codigo') as $loc)
+      @endforeach
+    <button type="button" onclick="EliminarRadio({{$radio->codigo}}, {{$loc->codigo}} )" class="btn btn-danger" data-toggle="modal" data-target="#modelId1">
+      Eliminar Radio 
+    </button>
     @endif
 </h4>
 
@@ -64,7 +62,7 @@
 </h5>
 
     <!-- Modal -->
-    <div class="modal fade" id="modelId" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+    <div class="modal fade" id="modelId" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="false">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -75,18 +73,18 @@
               </div>
           <div class="modal-body">
             <div class="container-fluid">
+              <div class="modal-body"> 
                 @if($radio->tipo->nombre == "M")
                   cambiar tipo_de_radio_id en la tabla radio para el codigo {{$radio->codigo}}  
                   update radio set tipo_de_radio_id = 3 where codigo = '{{ $radio->codigo }}';
                 @elseif($radio->tipo->nombre == "U")
-             <div class="modal-body">
                  cambiar tipo_de_radio_id en la tabla radio para el codigo {{$radio->codigo}}   
                  update radio set tipo_de_radio_id = 1 where codigo = '{{ $radio->codigo}}';
-            @endif
+                @endif
             </div>
             </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
           </div>
         </div>
       </div>
@@ -100,6 +98,7 @@
         
       });
     </script>
+  
 @if($radio->viviendas)	<p class="text-center">Con {{ $radio->viviendas }} viviendas.</p> @endif
 
 </div>
@@ -199,9 +198,16 @@
     }
 
     function EliminarRelacionLocalidad($radio,$localidad){
-    alert( $radio +  "   ---    " +$localidad);
+      alert( "Eliminar " + $radio +  " , " +$localidad + " de la tabla Radio_Localidad  \n delete from Radio_Localidad \n where radio_id in (select id from radio where codigo = " + $radio + ")  and localidad_id in (select id from localidad where codigo = " + $localidad + ")");
     }
+    
+    function EliminarRadio($radio,$localidad){
+      alert( "1. Eliminar " + $radio +  " , " +$localidad + " de la tabla Radio_Localidad  \n 2. buscar en que esquemas se encuentra el radio " + $radio + " y reportar que se eliminará de todos ellos \n 3. borrar el radio de la tabla radio" );
+    }     
+    
+    function CambiarTipodeRadio(){
 
+    }
     function zoom(scale) {
       for (var i = 0; i < 4; i++) {
         transformMatrix[i] *= scale;
