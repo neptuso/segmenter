@@ -13,3 +13,4 @@ npm-debug.log
 yarn-error.log
 vendor/laravel/framework/src/Illuminate/Database/Schema/PostgresBuilder.php
 public/*.log
+app/developer_docs/provincias_cargas
