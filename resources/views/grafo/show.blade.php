@@ -199,7 +199,7 @@
     }
 
     function EliminarRelacionLocalidad($radio,$localidad){
-    alert( $radio +  "   ---    " +$localidad);
+    alert( "Eliminar radio " + $radio +  " de la localidad " + $localidad);
     }
 
     function zoom(scale) {
