@@ -30,7 +30,6 @@ class Localidad extends Model
     public function departamentos()
     {
         return $this->belongsToMany('App\Model\Departamento','localidad_departamento');
-        // en el caso de CABA
     }
 
     /**

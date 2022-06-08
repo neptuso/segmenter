@@ -1,30 +1,109 @@
 @extends('layouts.app')
 @section('content')
-<div class="row center"><div class="col-lg-12 text-center">
-<h4><a href="{{ url("/aglo/{$aglomerado->id}") }}" > ({{ $aglomerado->codigo}}) {{ $aglomerado->nombre}}</a></h4>
+
+<div class = "row center"><div class = "col-lg-12 text-center">
+<h4><a href = "{{ url("/aglo/{$aglomerado->id}") }}" > ({{ $aglomerado->codigo}}) {{ $aglomerado->nombre}}</a></h4>
+
+<h4>Radio: {{ substr($radio->codigo, 0, 2) }} {{ substr($radio->codigo, 2, 3) }} 
+    <b>
+        {{ substr($radio->codigo, 5, 2) }} {{ substr($radio->codigo, 7, 2) }}
+    </b>
+    @if($radio->localidades->count() == 1)
+      <form method = "POST" action = "{{route('EliminarRadio',$radio)}}">
+          {{ csrf_field() }}
+          {{ method_field('DELETE') }}
+          <div class = " form-group">
+              <input type = "submit" class = "btn btn-danger" value = "Eliminar Radio">
+          </div>
+      </form>
+    @endif
+</h4>
+
+@if($radio->tipo)	
+    <p class = "text-center">({{ $radio->tipo->nombre }}) {{ $radio->tipo->descripcion }} 
+        @if($radio->tipo->nombre == "M")
+          <button type = "button" class="btn btn-danger" data-toggle = "modal" data-target = "#modelId">
+              Cambiar a Urbano
+          </button>
+        @elseif($radio->tipo->nombre == "U") 
+            <button type = "button" class = "btn btn-danger" data-toggle = "modal" data-target = "#modelId">
+                Cambiar a Mixto 
+            </button>
+        @endif              
+      </p>    
+@endif
 <h5>
+<div class = "d-flex justify-content-around" >  
+
 @foreach ($radio->localidades->sortBy('codigo') as $loc)
-@if ($loc and substr($loc->codigo,5,3)!='000')
-<a 
-@if ( isSet($localidad) and $loc->id==$localidad->id ) 
-    style="
-        color: #dd8a32;
-      	text-decoration: crimson ;
-      	font-weight: bolder;
-        font-size: 1.2rem;
-      "
-@endif
-href="{{ url("/localidad/{$loc->id}") }}" > ({{
-$loc->codigo}}) {{ $loc->nombre}}</a>
-@else
-  <i>(parte urbana)</i>
-@endif
-@endforeach
+  
+        @if ($loc and substr($loc->codigo,5,3) != '000')
+        <div> 
+                <a 
+                    @if ( $loc->id == $localidad->id ) 
+                      style = "
+                      color: #dd8a32;
+                      text-decoration: crimson;
+                      font-weight: bolder;
+                      font-size: 1.2rem;
+                      "
+                    @endif
+                    href = "{{ url("/localidad/{$loc->id}") }}" > 
+                    ({{$loc->codigo}}) {{ $loc->nombre}}
+                </a>
+                    @if ($loc->id !== $localidad->id)
+                          <button type="button" onclick="EliminarRelacionLocalidad({{$radio->codigo}}, {{$loc->codigo}})" class="btn btn-danger" data-toggle="modal" data-target="#modelId1">
+                            Eliminar Relacion con Localidad
+                          </button>
+
+                    @endif
+        </div>       
+        @endif
+    @endforeach
+</div>
 </h5>
-<h4>Radio: {{ substr($radio->codigo, 0, 2) }} {{ substr($radio->codigo, 2, 3) }} <b>{{ substr($radio->codigo, 5, 2) }} {{ substr($radio->codigo, 7, 2) }}</b></h4>
-@if($radio->tipo)	<p class="text-center">({{ $radio->tipo->nombre }}) {{ $radio->tipo->descripcion }}</p> @endif
+
+    <!-- Modal -->
+    <div class="modal fade" id="modelId" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"> Cambiar Tipo de Radio                </h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+              </div>
+          <div class="modal-body">
+            <div class="container-fluid">
+                @if($radio->tipo->nombre == "M")
+                  cambiar tipo_de_radio_id en la tabla radio para el codigo {{$radio->codigo}}  
+                  update radio set tipo_de_radio_id = 3 where codigo = '{{ $radio->codigo }}';
+                @elseif($radio->tipo->nombre == "U")
+             <div class="modal-body">
+                 cambiar tipo_de_radio_id en la tabla radio para el codigo {{$radio->codigo}}   
+                 update radio set tipo_de_radio_id = 1 where codigo = '{{ $radio->codigo}}';
+            @endif
+            </div>
+            </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <script>
+      $('#exampleModal').on('show.bs.modal', event => {
+        var button = $(event.relatedTarget);
+        var modal = $(this);
+        // Use above variables to manipulate the DOM
+        
+      });
+    </script>
 @if($radio->viviendas)	<p class="text-center">Con {{ $radio->viviendas }} viviendas.</p> @endif
-</div></div>
+
+</div>
+</div>
   <div class="row">
     </div>
 </div>
@@ -32,13 +111,7 @@ $loc->codigo}}) {{ $loc->nombre}}</a>
 @section('content')
 @endsection
 @section('header_scripts')
-<!-- script src="https://unpkg.com/numeric/numeric-1.2.6.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.14.0/cytoscape.min.js"></script>
-<script src="https://unpkg.com/layout-base/layout-base.js"></script>
-<script src="https://unpkg.com/cose-base/cose-base.js"></script>
-<script src="/js/cytoscape-fcose.js"></script>
-<script src="/js/cytoscape-cola.js"></script>
-<script src="/js/cola.min.js"></script -->
+
 <style>
 #grafo_cy {
   width: 480px;
@@ -58,26 +131,26 @@ $loc->codigo}}) {{ $loc->nombre}}</a>
 </style>
 @endsection
 @section('content_main')
-<div class="container-xl" >
-    <div class="no-gutters row ">
-    @forelse ($segmentacion_data_listado as $segmento)
-      @if($loop->first)
-        <div class="no-gutters row ">
-           Se encontraron {{ $loop->count }} segmentos.
-	</div>
-       <div class="table">
-        <div class="row ">
-            <div class="col-sm-1 text-center border"> Seg </div>
-            <div class="col-sm-10 text-center border"> Descripción </div>
-            <div class="col-sm-1 text-center border"> Viviendas </div>
-	</div>
-      @endif
-        <div class="row border">
-        <div class="col-sm-1 ">{{ $segmento->seg }}</div>
-        <div class="col-sm-10 ">{!! str_replace(". Manzana ",".<br/>Manzana ",
+<div class = "container-xl" >
+    <div class = "no-gutters row ">
+        @forelse ($segmentacion_data_listado as $segmento)
+            @if($loop->first)
+                <div class = "no-gutters row ">
+                    Se encontraron {{ $loop->count }} segmentos.
+	              </div>
+                <div class = "table">
+                <div class = "row ">
+                <div class = "col-sm-1 text-center border"> Seg </div>
+                <div class = "col-sm-10 text-center border"> Descripción </div>
+                <div class = "col-sm-1 text-center border"> Viviendas </div>
+	    </div>
+        @endif
+        <div class = "row border">
+        <div class = "col-sm-1 ">{{ $segmento->seg }}</div>
+        <div class = "col-sm-10 ">{!! str_replace(". Manzana ",".<br/>Manzana ",
                                             str_replace(".  ",".<br/>",$segmento->detalle))  !!}</div>
-        <div class="col-sm-1 text-right "><p class="text-right">{{ $segmento->vivs }}</p></div>
-	</div>
+        <div class = "col-sm-1 text-right "><p class = "text-right">{{ $segmento->vivs }}</p></div>
+	  </div>
        @if($loop->last)
        </div>
        @endif
@@ -125,25 +198,28 @@ $loc->codigo}}) {{ $loc->nombre}}</a>
       matrixGroup.setAttributeNS(null, "transform", newMatrix);
     }
 
+    function EliminarRelacionLocalidad($radio,$localidad){
+    alert( $radio +  "   ---    " +$localidad);
+    }
 
-function zoom(scale) {
-  for (var i = 0; i < 4; i++) {
-    transformMatrix[i] *= scale;
-  }
-  transformMatrix[4] += (1 - scale) * centerX;
-  transformMatrix[5] += (1 - scale) * centerY;  
+    function zoom(scale) {
+      for (var i = 0; i < 4; i++) {
+        transformMatrix[i] *= scale;
+      }
+      transformMatrix[4] += (1 - scale) * centerX;
+      transformMatrix[5] += (1 - scale) * centerY;  
 
-  svg.viewBox.baseVal.x*=scale;
-  svg.viewBox.baseVal.y*=scale;
-//  transformMatrix[4] = centerX;
-//  transformMatrix[5] = centerY;
-		        
-  var newMatrix = "matrix(" +  transformMatrix.join(' ') + ")";
-  matrixGroup.setAttributeNS(null, "transform", newMatrix);
-  console.log(svg.getAttributeNS(null, "viewBox").split(" "));
-  console.log(scale);
-  console.log(transformMatrix);
-}
+      svg.viewBox.baseVal.x*=scale;
+      svg.viewBox.baseVal.y*=scale;
+      //  transformMatrix[4] = centerX;
+      //  transformMatrix[5] = centerY;
+              
+      var newMatrix = "matrix(" +  transformMatrix.join(' ') + ")";
+      matrixGroup.setAttributeNS(null, "transform", newMatrix);
+      console.log(svg.getAttributeNS(null, "viewBox").split(" "));
+      console.log(scale);
+      console.log(transformMatrix);
+    }
 
 
     let arrayOfClusterArrays = @json($segmentacion) ;  
