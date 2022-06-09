@@ -12,7 +12,7 @@
       @foreach ($radio->localidades->sortBy('codigo') as $loc)
       @endforeach
     <button type="button" onclick="EliminarRadio({{$radio->codigo}}, {{$loc->codigo}} )" class="btn btn-danger" data-toggle="modal" data-target="#modelId1">
-      Eliminar Radio 
+        Eliminar Radio 
     </button>
     @endif
 </h4>
@@ -20,15 +20,11 @@
 @if($radio->tipo)	
     <p class = "text-center">({{ $radio->tipo->nombre }}) {{ $radio->tipo->descripcion }} 
         @if($radio->tipo->nombre == "M")
-          <button type = "button" class="btn btn-danger" data-toggle = "modal" data-target = "#modelId">
-              Cambiar a Urbano
-          </button>
+              <input type = "button" value = "Cambiar a Urbano" onclick = "CambiarTipom( {{$radio->tipo}},{{$radio->codigo}})" class="btn btn-danger"/>    
         @elseif($radio->tipo->nombre == "U") 
-            <button type = "button" class = "btn btn-danger" data-toggle = "modal" data-target = "#modelId">
-                Cambiar a Mixto 
-            </button>
+                <input type = "button" value = "Cambiar a Mixto" onclick = "CambiarTipou( {{$radio->tipo}},{{$radio->codigo}})" class="btn btn-danger"/>    
         @endif              
-      </p>    
+    </p>    
 @endif
 <h5>
 <div class = "d-flex justify-content-around" >  
@@ -61,43 +57,6 @@
 </div>
 </h5>
 
-    <!-- Modal -->
-    <div class="modal fade" id="modelId" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="false">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"> Cambiar Tipo de Radio                </h5>
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                  </button>
-              </div>
-          <div class="modal-body">
-            <div class="container-fluid">
-              <div class="modal-body"> 
-                @if($radio->tipo->nombre == "M")
-                  cambiar tipo_de_radio_id en la tabla radio para el codigo {{$radio->codigo}}  
-                  update radio set tipo_de_radio_id = 3 where codigo = '{{ $radio->codigo }}';
-                @elseif($radio->tipo->nombre == "U")
-                 cambiar tipo_de_radio_id en la tabla radio para el codigo {{$radio->codigo}}   
-                 update radio set tipo_de_radio_id = 1 where codigo = '{{ $radio->codigo}}';
-                @endif
-            </div>
-            </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <script>
-      $('#exampleModal').on('show.bs.modal', event => {
-        var button = $(event.relatedTarget);
-        var modal = $(this);
-        // Use above variables to manipulate the DOM
-        
-      });
-    </script>
   
 @if($radio->viviendas)	<p class="text-center">Con {{ $radio->viviendas }} viviendas.</p> @endif
 
@@ -198,16 +157,53 @@
     }
 
     function EliminarRelacionLocalidad($radio,$localidad){
-      alert( "Eliminar " + $radio +  " , " +$localidad + " de la tabla Radio_Localidad  \n delete from Radio_Localidad \n where radio_id in (select id from radio where codigo = " + $radio + ")  and localidad_id in (select id from localidad where codigo = " + $localidad + ")");
+          var newLine = "\r\n"
+          var message = "Eliminar " + $radio +  " , " +$localidad + " de la tabla Radio_Localidad ";
+          message += newLine;
+          message += "delete from Radio_Localidad";
+          message += newLine;
+          message += "where radio_id in (select id from radio where codigo = " + $radio + ")";
+          message += newLine;
+          message += "and localidad_id in (select id from localidad where codigo = " + $localidad + ")";
+          message += newLine;  
+          alert(message);
+
     }
     
     function EliminarRadio($radio,$localidad){
-      alert( "1. Eliminar " + $radio +  " , " +$localidad + " de la tabla Radio_Localidad  \n 2. buscar en que esquemas se encuentra el radio " + $radio + " y reportar que se eliminará de todos ellos \n 3. borrar el radio de la tabla radio" );
+        var newLine = "\r\n"
+        var message = "1. Eliminar " + $radio +  " , " +$localidad + " de la tabla Radio_Localidad ";
+        message += newLine;
+        message += "2. Buscar en que esquemas se encuentra el radio " + $radio + " y reportar que se eliminará de todos ellos";
+        message += newLine;
+        message += "3. borrar el radio de la tabla radio ";
+        message += newLine;
+              
+        alert(message);
+  
     }     
     
-    function CambiarTipodeRadio(){
-
-    }
+    
+    function CambiarTipom($tipo,$codigo) {
+            var newLine = "\r\n"
+            var message = "cambiar tipo_de_radio_id en la tabla radio para el codigo " + $codigo ;
+            message += newLine;
+            message += "update radio set tipo_de_radio_id = 3 where codigo = " + $codigo;
+            message += newLine;
+            
+            alert(message);
+            
+          }
+          function CambiarTipou($tipo,$codigo) {
+            var newLine = "\r\n"
+            var message = "cambiar tipo_de_radio_id en la tabla radio para el codigo " + $codigo ;
+            message += newLine;
+            message += "update radio set tipo_de_radio_id = 1 where codigo = " + $codigo;
+            message += newLine;
+            
+            alert(message);
+            
+          }
     function zoom(scale) {
       for (var i = 0; i < 4; i++) {
         transformMatrix[i] *= scale;
