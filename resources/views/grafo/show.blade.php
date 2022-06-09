@@ -174,7 +174,7 @@
         var newLine = "\r\n"
         var message = "1. Eliminar " + $radio +  " , " +$localidad + " de la tabla radio_localidad ";
         message += newLine;
-        message += "2. Buscar en que esquemas se encuentra el radio " + $radio + " y reportar que se eliminará de todos ellos";
+        message += "2. Buscar en qué esquemas se encuentra el radio " + $radio + " y reportar que se eliminará de todos ellos";
         message += newLine;
         message += "3. borrar el radio de la tabla radio ";
         message += newLine;
