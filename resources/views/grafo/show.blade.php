@@ -157,54 +157,53 @@
     }
 
     function EliminarRelacionLocalidad($radio,$localidad){
-          var newLine = "\r\n"
-          var message = "Eliminar " + $radio +  " , " +$localidad + " de la tabla Radio_Localidad ";
-          message += newLine;
-          message += "delete from Radio_Localidad";
-          message += newLine;
-          message += "where radio_id in (select id from radio where codigo = " + $radio + ")";
-          message += newLine;
-          message += "and localidad_id in (select id from localidad where codigo = " + $localidad + ")";
-          message += newLine;  
-          alert(message);
+        var newLine = "\r\n"
+        var message = "Eliminar " + $radio +  " , " +$localidad + " de la tabla radio_localidad ";
+        message += newLine;
+        message += "delete from radio_localidad";
+        message += newLine;
+        message += "where radio_id in (select id from radio where codigo = " + $radio + ")";
+        message += newLine;
+        message += "and localidad_id in (select id from localidad where codigo = " + $localidad + ")";
+        message += newLine;  
+        alert(message);
 
     }
     
     function EliminarRadio($radio,$localidad){
-        var newLine = "\r\n"
-        var message = "1. Eliminar " + $radio +  " , " +$localidad + " de la tabla Radio_Localidad ";
+        var newLine = "\r\n"  
+        var message = "1. Eliminar el radio " + $radio +  ", localidad " +$localidad + " de la tabla radio_localidad ";
         message += newLine;
-        message += "2. Buscar en que esquemas se encuentra el radio " + $radio + " y reportar que se eliminará de todos ellos";
+        message += "2. Buscar en qué esquemas se encuentra el radio " + $radio + " y reportar que se eliminará de todos ellos";
         message += newLine;
-        message += "3. borrar el radio de la tabla radio ";
+        message += "3. borrar el radio " + $radio +  " de la tabla radio ";
         message += newLine;
-              
         alert(message);
   
     }     
     
     
     function CambiarTipom($tipo,$codigo) {
-            var newLine = "\r\n"
-            var message = "cambiar tipo_de_radio_id en la tabla radio para el codigo " + $codigo ;
-            message += newLine;
-            message += "update radio set tipo_de_radio_id = 3 where codigo = " + $codigo;
-            message += newLine;
+        var newLine = "\r\n"
+        var message = "cambiar tipo_de_radio_id en la tabla radio para el codigo " + $codigo ;
+        message += newLine;
+        message += "update radio set tipo_de_radio_id = 3 where codigo = " + $codigo;
+        message += newLine;
+        alert(message);
             
-            alert(message);
-            
-          }
-          function CambiarTipou($tipo,$codigo) {
-            var newLine = "\r\n"
-            var message = "cambiar tipo_de_radio_id en la tabla radio para el codigo " + $codigo ;
-            message += newLine;
-            message += "update radio set tipo_de_radio_id = 1 where codigo = " + $codigo;
-            message += newLine;
-            
-            alert(message);
-            
-          }
-    function zoom(scale) {
+      }
+
+    function CambiarTipou($tipo,$codigo) {
+        var newLine = "\r\n"
+        var message = "cambiar tipo_de_radio_id en la tabla radio para el codigo " + $codigo ;
+        message += newLine;
+        message += "update radio set tipo_de_radio_id = 1 where codigo = " + $codigo;
+        message += newLine;
+        alert(message);
+        
+      }
+ 
+      function zoom(scale) {
       for (var i = 0; i < 4; i++) {
         transformMatrix[i] *= scale;
       }
