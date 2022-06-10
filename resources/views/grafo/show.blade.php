@@ -189,8 +189,10 @@
         message += newLine;
         message += "update radio set tipo_de_radio_id = 3 where codigo = " + $codigo;
         message += newLine;
-        alert(message);
-            
+        message += "qué es?? = " + $tipo;
+        confirm(message);
+       
+
       }
 
     function CambiarTipou($tipo,$codigo) {
@@ -199,8 +201,9 @@
         message += newLine;
         message += "update radio set tipo_de_radio_id = 1 where codigo = " + $codigo;
         message += newLine;
-        alert(message);
+        confirm(message);
         
+
       }
  
       function zoom(scale) {

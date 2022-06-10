@@ -74,9 +74,16 @@ class RadioController extends Controller
      * @param  \App\Model\Radio  $radio
      * @return \Illuminate\Http\Response
      */
-    public function edit(Radio $radio)
+    public function edit(Radio $radio,)
     {
-        //
+        
+        //$t_radio= Radio::findorfail($radio->codigo);
+          //  dd ('se ha modificado en ' . $radio->nombre + $radio->codigo .  'el tipo de radio' );
+          
+
+          
+          return view('radio.edit',compact('$radio')); 
+        
     }
 
     /**
@@ -88,7 +95,8 @@ class RadioController extends Controller
      */
     public function update(Request $request, Radio $radio)
     {
-        //
+        
+        
     }
 
     /**
@@ -129,5 +137,6 @@ class RadioController extends Controller
         $segmenta->juntarSegmentos($radio,$menos_n_viviendas);
         return $segmenta->ver_segmentacion($radio);
     }
+
 
 }

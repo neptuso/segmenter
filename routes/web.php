@@ -223,6 +223,7 @@ Route::post('ver-segmentacion-lados-grafico-resumen/{aglomerado}','AglomeradoCon
 Route::get('radios/{localidad}/{departamento}','RadiosController@show');
 Route::get('radio/{radio}','RadioController@show');
 Route::delete('radio/{radio}','RadioController@destroy')->name('EliminarRadio');
+Route::get('radio/{radio}','RadioController@edit')->name('ModificarRadio');
 
 // ---------- GRAFOS AGLOMERADOS --------
 Route::get('grafo/{aglomerado}','SegmentacionController@index')->name('index');
