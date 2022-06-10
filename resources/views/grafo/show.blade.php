@@ -157,21 +157,21 @@
     }
 
     function EliminarRelacionLocalidad($radio,$localidad){
-        var newLine = "\r\n"
-        var message = "Eliminar " + $radio +  " , " +$localidad + " de la tabla radio_localidad ";
-        message += newLine;
-        message += "delete from radio_localidad";
-        message += newLine;
-        message += "where radio_id in (select id from radio where codigo = " + $radio + ")";
-        message += newLine;
-        message += "and localidad_id in (select id from localidad where codigo = " + $localidad + ")";
-        message += newLine;  
-        alert(message);
+          var newLine = "\r\n"
+          var message = "Eliminar " + $radio +  " , " +$localidad + " de la tabla radio_localidad ";
+          message += newLine;
+          message += "delete from radio_localidad";
+          message += newLine;
+          message += "where radio_id in (select id from radio where codigo = " + $radio + ")";
+          message += newLine;
+          message += "and localidad_id in (select id from localidad where codigo = " + $localidad + ")";
+          message += newLine;  
+          alert(message);
 
     }
     
     function EliminarRadio($radio,$localidad){
-        var newLine = "\r\n"  
+        var newLine = "\r\n"
         var message = "1. Eliminar el radio " + $radio +  ", localidad " +$localidad + " de la tabla radio_localidad ";
         message += newLine;
         message += "2. Buscar en qué esquemas se encuentra el radio " + $radio + " y reportar que se eliminará de todos ellos";
