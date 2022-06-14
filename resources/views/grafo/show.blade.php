@@ -19,14 +19,15 @@
 
 @if($radio->tipo)	
     <p class = "text-center">({{ $radio->tipo->nombre }}) {{ $radio->tipo->descripcion }} 
-    <form action="/radio/{{$radio->id}}" method="POST">   
+    <form action="/radio/{{$radio->id}}" id="formeditradio" method="POST">   
+        
         @csrf
         @if($radio->tipo->nombre == "M")
            <input type="hidden" value='U' name='tipo_nuevo'>
-           <button type="submit" class="btn btn-danger" > Cambiar a Urbano </button>
+           <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Cambiar a Urbano </button>
          @elseif($radio->tipo->nombre == "U") 
            <input type="hidden" value='M' name='tipo_nuevo'>
-           <button type="submit" class="btn btn-danger" > Cambiar a Mixto </button>
+           <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Cambiar a Mixto </button>
         @endif              
     </form>
     </p>    
@@ -184,9 +185,16 @@
         message += newLine;
         message += "3. borrar el radio " + $radio +  " de la tabla radio ";
         message += newLine;
-        alert(message);
+        confirm(message);
     }     
   
+    function CambiarTipodeRadio(){
+      mensaje="desea cambiar el tipo de radio?"
+      if (confirm(mensaje)){
+          $("#formeditradio").submit();
+      }
+    }
+
       function zoom(scale) {
       for (var i = 0; i < 4; i++) {
         transformMatrix[i] *= scale;
