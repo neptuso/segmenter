@@ -136,9 +136,14 @@ class RadioController extends Controller
     public function cambiotiporadio(Request $request, $radio_id){
 
         $radio = Radio::findorfail($radio_id);
+        $tipoderadio = TipoRadio::where ('id', '=', $radio->tipo_de_radio_id)->first('nombre');
+        if ($radio->localidades->count() > 1 and $tipoderadio->nombre == 'M'){
+            flash('No se puede cambiar el tipo de radio a urbano dado que contiene más de una localidad');
+            return back();
+        }
         $radio->tipo()->associate(TipoRadio::where('nombre', '=', $request->input('tipo_nuevo'))->first('id'));
         $radio->save();
-        flash ('Cambio de Tipo de Radio realizado a ' . $radio->id)->success();
+        flash ('Cambio de Tipo de Radio realizado a ' . $radio->codigo . ' ahora es ' .$request->input('tipo_nuevo') )->success();
         return back();
     }
     
