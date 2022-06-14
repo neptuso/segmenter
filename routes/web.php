@@ -187,6 +187,7 @@ Route::post('localidad/{localidad}','LocalidadController@segmenta_post');
 Route::post('localidad-segmenta/{localidad}','LocalidadController@segmenta_post');
 Route::get('localidad-segmenta/{localidad}','LocalidadController@segmenta_post');
 Route::post('localidad-segmenta-run/{localidad}','LocalidadController@run_segmentar');
+Route::post('localidad/{localidad}','LocalidadController@eliminarRelacionLocalidad')->name('EliminarRelacionLocalidad');
 //Route::post('localidad/{localidad}','LocalidadController@show_post');
 // PxSeg Localidad
 Route::get('localidad/{localidad}/pxseg','LocalidadController@ver_pxseg')->name('localidad-ver-segmentacion-pxseg');

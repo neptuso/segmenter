@@ -348,6 +348,17 @@ class LocalidadController extends Controller
     {
         dd ('Eliminar '. $localidad->codigo . ' de la tabla radio_localidad....... ');
 
-       
     }
+    public function eliminarRelacionLocalidad(Request $request,$localidad_id){
+
+        $localidad = Localidad::findorfail($localidad_id);
+        $radio = Radio::findorfail($request-> input('radio_id'));
+        $radio->localidades()->detach($localidad_id);
+        
+        dd('Si estás viendo ésto es porque eliminaste la relación entre radio_id: '. $request-> input('radio_id') . '  localidad:  ' . $localidad->nombre);   
+        
+        // flash ('Cambio todavia no realizado' . $radio->codigo . ' ahora es '  )->success();
+        
+     
+        }
 }

@@ -20,7 +20,6 @@
 @if($radio->tipo)	
     <p class = "text-center">({{ $radio->tipo->nombre }}) {{ $radio->tipo->descripcion }} 
     <form action="/radio/{{$radio->id}}" id="formeditradio" method="POST">   
-        
         @csrf
         @if($radio->tipo->nombre == "M")
            <input type="hidden" value='U' name='tipo_nuevo'>
@@ -53,10 +52,13 @@
                     ({{$loc->codigo}}) {{ $loc->nombre}}
                 </a>
                     @if ($loc->id !== $localidad->id)
-                          <button type="button" onclick="EliminarRelacionLocalidad({{$radio->codigo}}, {{$loc->codigo}})" class="btn btn-danger" data-toggle="modal" data-target="#modelId1">
-                            Eliminar Relacion con Localidad
-                          </button>
-
+                    <form action="/localidad/{{$localidad->id}}" id="eliminarelacionlocalidad" method="POST">   
+                      @csrf
+                      <input type="hidden" value="{{$radio->id}}" name='radio_id'>
+                      <button type="button" onclick="EliminarRelacionLocalidad({{$radio->codigo}}, {{$loc->codigo}})" class="btn btn-danger" data-toggle="modal" >
+                          Eliminar Relacion con Localidad
+                      </button>       
+                    </form>
                     @endif
         </div>       
         @endif
@@ -173,7 +175,12 @@
           message += newLine;
           message += "and localidad_id in (select id from localidad where codigo = " + $localidad + ")";
           message += newLine;  
-          alert(message);
+          consulta=confirm(message);
+          
+          if (confirm(consulta)){
+            $("#eliminarelacionlocalidad").submit();
+          }
+
 
     }
     
