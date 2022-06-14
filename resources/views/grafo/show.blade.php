@@ -19,13 +19,19 @@
 
 @if($radio->tipo)	
     <p class = "text-center">({{ $radio->tipo->nombre }}) {{ $radio->tipo->descripcion }} 
+    <form action="/radio/{{$radio->id}}" method="POST">   
+        @csrf
         @if($radio->tipo->nombre == "M")
-              <input type = "button" value = "Cambiar a Urbano" onclick = "CambiarTipom( {{$radio->tipo}},{{$radio->codigo}})" class="btn btn-danger"/>    
-        @elseif($radio->tipo->nombre == "U") 
-                <input type = "button" value = "Cambiar a Mixto" onclick = "CambiarTipou( {{$radio->tipo}},{{$radio->codigo}})" class="btn btn-danger"/>    
+           <input type="hidden" value='U' name='tipo_nuevo'>
+           <button type="submit" class="btn btn-danger" > Cambiar a Urbano </button>
+         @elseif($radio->tipo->nombre == "U") 
+           <input type="hidden" value='M' name='tipo_nuevo'>
+           <button type="submit" class="btn btn-danger" > Cambiar a Mixto </button>
         @endif              
+    </form>
     </p>    
 @endif
+
 <h5>
 <div class = "d-flex justify-content-around" >  
 
@@ -179,33 +185,8 @@
         message += "3. borrar el radio " + $radio +  " de la tabla radio ";
         message += newLine;
         alert(message);
-  
     }     
-    
-    
-    function CambiarTipom($tipo,$codigo) {
-        var newLine = "\r\n"
-        var message = "cambiar tipo_de_radio_id en la tabla radio para el codigo " + $codigo ;
-        message += newLine;
-        message += "update radio set tipo_de_radio_id = 3 where codigo = " + $codigo;
-        message += newLine;
-        message += "qué es?? = " + $tipo;
-        confirm(message);
-       
-
-      }
-
-    function CambiarTipou($tipo,$codigo) {
-        var newLine = "\r\n"
-        var message = "cambiar tipo_de_radio_id en la tabla radio para el codigo " + $codigo ;
-        message += newLine;
-        message += "update radio set tipo_de_radio_id = 1 where codigo = " + $codigo;
-        message += newLine;
-        confirm(message);
-        
-
-      }
- 
+  
       function zoom(scale) {
       for (var i = 0; i < 4; i++) {
         transformMatrix[i] *= scale;

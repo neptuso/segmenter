@@ -6,7 +6,7 @@ use App\Model\Radio;
 use Illuminate\Http\Request;
 use App\Segmentador;
 use Illuminate\Support\Facades\Log;
- 
+use App\Model\TipoRadio;
 
 class RadioController extends Controller
 {
@@ -18,7 +18,6 @@ class RadioController extends Controller
 
     /**
      * Display a listing of the resource.
-     *
      * @return \Illuminate\Http\Response
      */
     public function index()
@@ -74,16 +73,9 @@ class RadioController extends Controller
      * @param  \App\Model\Radio  $radio
      * @return \Illuminate\Http\Response
      */
-    public function edit(Radio $radio,)
+    public function edit(Radio $radio)
     {
-        
-        //$t_radio= Radio::findorfail($radio->codigo);
-          //  dd ('se ha modificado en ' . $radio->nombre + $radio->codigo .  'el tipo de radio' );
-          
-
-          
-          return view('radio.edit',compact('$radio')); 
-        
+       //
     }
 
     /**
@@ -95,8 +87,7 @@ class RadioController extends Controller
      */
     public function update(Request $request, Radio $radio)
     {
-        
-        
+       //
     }
 
     /**
@@ -108,7 +99,7 @@ class RadioController extends Controller
     public function destroy(Radio $radio)
     {
         
-        dd ('eliminar ' . $radio->nombre .  'de la tabla radio_localidad ...'         );
+       //
        
     }
 
@@ -138,5 +129,17 @@ class RadioController extends Controller
         return $segmenta->ver_segmentacion($radio);
     }
 
+    /**
+     * Cambio de Tipo de radio  
+     * 
+     */
+    public function cambiotiporadio(Request $request, $radio_id){
 
+        $radio = Radio::findorfail($radio_id);
+        $radio->tipo()->associate(TipoRadio::where('nombre', '=', $request->input('tipo_nuevo'))->first('id'));
+        $radio->save();
+        flash ('Cambio de Tipo de Radio realizado a ' . $radio->id)->success();
+        return back();
+    }
+    
 }
