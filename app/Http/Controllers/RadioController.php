@@ -98,9 +98,10 @@ class RadioController extends Controller
      */
     public function destroy(Radio $radio)
     {
-        
-       //
-       
+        dd('esto no elimina, tampoco se muestra, no llega :( ');
+        radio ->delete();
+        return back();
+     
     }
 
     /**
@@ -135,6 +136,7 @@ class RadioController extends Controller
      */
     public function cambiotiporadio(Request $request, $radio_id){
 
+        
         $radio = Radio::findorfail($radio_id);
         $tipoderadio = TipoRadio::where ('id', '=', $radio->tipo_de_radio_id)->first('nombre');
         if ($radio->localidades->count() > 1 and $tipoderadio->nombre == 'M'){

@@ -8,13 +8,16 @@
     <b>
         {{ substr($radio->codigo, 5, 2) }} {{ substr($radio->codigo, 7, 2) }}
     </b>
-    @if($radio->localidades->count() == 1)
-      @foreach ($radio->localidades->sortBy('codigo') as $loc)
-      @endforeach
-    <button type="button" onclick="EliminarRadio({{$radio->codigo}}, {{$loc->codigo}} )" class="btn btn-danger" data-toggle="modal" data-target="#modelId1">
-        Eliminar Radio 
-    </button>
-    @endif
+    <form action="/radio/{{$radio->id}}" id="EliminarRadio" method="DELETE">  
+        @csrf
+        @if($radio->localidades->count() == 1)
+          @foreach ($radio->localidades->sortBy('codigo') as $loc)
+          @endforeach
+        <button type="button" onclick="EliminarRadio({{$radio->codigo}}, {{$loc->codigo}} )" class="btn btn-danger">
+            Eliminar Radio 
+        </button>
+        @endif
+    </form>
 </h4>
 
 @if($radio->tipo)	
@@ -166,7 +169,7 @@
     }
 
     function EliminarRelacionLocalidad($radio,$localidad){
-          var newLine = "\r\n"
+          var newLine = "\r\n";
           var message = "Eliminar " + $radio +  " , " +$localidad + " de la tabla radio_localidad ";
           message += newLine;
           message += "delete from radio_localidad";
@@ -184,22 +187,21 @@
 
     }
     
-    function EliminarRadio($radio,$localidad){
-        var newLine = "\r\n"
-        var message = "1. Eliminar el radio " + $radio +  ", localidad " +$localidad + " de la tabla radio_localidad ";
-        message += newLine;
-        message += "2. Buscar en qué esquemas se encuentra el radio " + $radio + " y reportar que se eliminará de todos ellos";
-        message += newLine;
-        message += "3. borrar el radio " + $radio +  " de la tabla radio ";
-        message += newLine;
-        confirm(message);
+    function EliminarRadio($radio){
+     
+
+        message = "está seguro que desea eliminar el radio {{$radio->id}} ?";
+        consult = confirm(message);
+        if (confirm(consult)){
+          $("#EliminarRadio").submit();
+        }
     }     
   
     function CambiarTipodeRadio(){
-      mensaje="desea cambiar el tipo de radio?"
-      if (confirm(mensaje)){
+      mensaje="desea cambiar el tipo de radio?";
+      if(confirm(mensaje)){
           $("#formeditradio").submit();
-      }
+      } 
     }
 
       function zoom(scale) {
