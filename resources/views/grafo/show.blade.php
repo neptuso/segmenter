@@ -55,11 +55,10 @@
                     ({{$loc->codigo}}) {{ $loc->nombre}}
                 </a>
                     @if ($loc->id !== $localidad->id)
-                    <form action="/localidad/{{$loc->id}}" id="eliminarelacionlocalidad" method="POST">   
+                    <form action="/localidad/{{$loc->id}}" id="eliminarelacionlocalidad" onsubmit="EliminarRelacionLocalidad({{$radio->codigo}}, {{$loc->codigo}})"  method="POST">   
                       @csrf
                       <input type="hidden" value="{{$radio->id}}" name='radio_id'>
-                      
-                      <button type="button" onclick="EliminarRelacionLocalidad({{$radio->codigo}}, {{$loc->codigo}})" class="btn btn-danger" data-toggle="modal" >
+                      <button type="submit" class="btn btn-danger" data-toggle="modal" >
                           Eliminar Relacion con Localidad
                       </button>       
                     </form>
@@ -170,6 +169,7 @@
     }
 
     function EliminarRelacionLocalidad($radio,$localidad){
+
           var newLine = "\r\n";
           var message = "Eliminar " + $radio +  " , " +$localidad + " de la tabla radio_localidad ";
           message += newLine;
@@ -180,11 +180,7 @@
           message += "and localidad_id in (select id from localidad where codigo = " + $localidad + ")";
           message += newLine;  
           consulta=confirm(message);
-          
-          if ((consulta)){
-            $("#eliminarelacionlocalidad").submit();
-          }
-
+          return consulta;
 
     }
     
