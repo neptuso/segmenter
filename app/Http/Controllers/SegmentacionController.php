@@ -55,7 +55,7 @@ class SegmentacionController extends Controller
 
         $radio->refresh();
         return
-        view('grafo.show',['nodos'=>$nodos,'relaciones'=>$edges,'segmentacion'=>$segmentacion,'segmentacion_data_listado'=>$segmentacion_listado,'aglomerado'=>$localidad->aglomerado,'localidad'=>$localidad,'radio'=>$radio]);
+        view('grafo.show',['nodos'=>$nodos,'relaciones'=>$edges,'segmentacion'=>$segmentacion,'segmentacion_data_listado'=>$segmentacion_listado,'aglomerado'=>$localidad->aglomerado,'localidad'=>$localidad,'radio'=>$radio, 'edicion'=>false]);
     }
 
     public function ver_grafico(Aglomerado $aglomerado,Radio $radio) {

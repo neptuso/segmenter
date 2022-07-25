@@ -13,9 +13,11 @@
         @if($radio->localidades->count() == 1)
           @foreach ($radio->localidades->sortBy('codigo') as $loc)
           @endforeach
-        <button type="button" onclick="EliminarRadio({{$radio->codigo}}, {{$loc->codigo}} )" class="btn btn-danger">
-            Eliminar Radio 
-        </button>
+          @if ($edicion==true)
+            <button type="button" onclick="EliminarRadio({{$radio->codigo}}, {{$loc->codigo}} )" class="btn btn-danger">
+              Eliminar Radio 
+            </button>
+          @endif
         @endif
     </form>
 </h4>
@@ -24,13 +26,15 @@
     <p class = "text-center">({{ $radio->tipo->nombre }}) {{ $radio->tipo->descripcion }} 
     <form action="/radio/{{$radio->id}}" id="formeditradio" method="POST">   
         @csrf
-        @if($radio->tipo->nombre == "M")
-           <input type="hidden" value='U' name='tipo_nuevo'>
-           <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Cambiar a Urbano </button>
-         @elseif($radio->tipo->nombre == "U") 
-           <input type="hidden" value='M' name='tipo_nuevo'>
-           <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Cambiar a Mixto </button>
-        @endif              
+        @if ($edicion==true)
+            @if($radio->tipo->nombre == "M")
+              <input type="hidden" value='U' name='tipo_nuevo'>
+              <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Cambiar a Urbano </button>
+            @elseif($radio->tipo->nombre == "U") 
+              <input type="hidden" value='M' name='tipo_nuevo'>
+              <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Cambiar a Mixto </button>
+            @endif   
+        @endif           
     </form>
     </p>    
 @endif
@@ -55,13 +59,15 @@
                     ({{$loc->codigo}}) {{ $loc->nombre}}
                 </a>
                     @if ($loc->id !== $localidad->id)
-                    <form action="/localidad/{{$loc->id}}" id="eliminarelacionlocalidad" onsubmit="EliminarRelacionLocalidad({{$radio->codigo}}, {{$loc->codigo}})"  method="POST">   
-                      @csrf
-                      <input type="hidden" value="{{$radio->id}}" name='radio_id'>
-                      <button type="submit" class="btn btn-danger" data-toggle="modal" >
-                          Eliminar Relacion con Localidad
-                      </button>       
-                    </form>
+                    @if ($edicion==true)
+                        <form action="/localidad/{{$loc->id}}" id="eliminarelacionlocalidad" onsubmit="EliminarRelacionLocalidad({{$radio->codigo}}, {{$loc->codigo}})"  method="POST">   
+                          @csrf
+                          <input type="hidden" value="{{$radio->id}}" name='radio_id'>
+                          <button type="submit" class="btn btn-danger" data-toggle="modal" >
+                              Eliminar Relacion con Localidad
+                          </button>       
+                        </form>
+                     @endif   
                     @endif
         </div>       
         @endif
@@ -171,7 +177,7 @@
     function EliminarRelacionLocalidad($radio,$localidad){
 
           var newLine = "\r\n";
-          var message = "Eliminar " + $radio +  " , " +$localidad + " de la tabla radio_localidad ";
+          var message = "Eliminar " + $radio +  " , " + $localidad + " de la tabla radio_localidad ";
           message += newLine;
           message += "delete from radio_localidad";
           message += newLine;
