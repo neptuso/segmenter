@@ -98,9 +98,12 @@ class RadioController extends Controller
      */
     public function destroy(Radio $radio)
     {
-        dd('esto no elimina, tampoco se muestra, no llega :( ');
-        radio ->delete();
-        return back();
+           
+        $radio = Radio::findorfail($radio);
+        dd('texto texto');
+        
+            //$radio ->delete();
+            return back();
      
     }
 

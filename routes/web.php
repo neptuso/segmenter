@@ -230,6 +230,7 @@ Route::post('radio/{radio}','RadioController@cambiotiporadio')->name('CambioTipo
 Route::get('grafo/{aglomerado}','SegmentacionController@index')->name('index');
 Route::get('grafo/{aglomerado}/{radio}/','SegmentacionController@ver_grafo_legacy')->name('ver-grafo-redirect');
 Route::get('radio/{localidad}/{radio}/','SegmentacionController@ver_grafo')->name('ver-grafo');
+Route::get('radio/{localidad}/{radio}/edit','SegmentacionController@ver_grafo_edit')->name('ver-grafo-edit');
 
 // ---------- ARCHIVOS --------
 Route::post('archivos','ArchivoController@index');
