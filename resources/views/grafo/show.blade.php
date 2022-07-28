@@ -69,7 +69,25 @@
                         </form>
                      @endif   
                     @endif
-        </div>       
+        </div>   
+        @else
+
+        <div>
+        <a href = "{{ url("/localidad/{$loc->id}") }}" > 
+                    ({{$loc->codigo}}) {{ $loc->nombre}} 
+                </a> 
+                @if ($loc->id !== $localidad->id)
+                    @if ($edicion==true)
+                        <form action="/localidad/{{$loc->id}}" id="eliminarelacionlocalidad" onsubmit="EliminarRelacionLocalidad({{$radio->codigo}}, {{$loc->codigo}})"  method="POST">   
+                          @csrf
+                          <input type="hidden" value="{{$radio->id}}" name='radio_id'>
+                          <button type="submit" class="btn btn-danger" data-toggle="modal" >
+                              Eliminar Relacion con zona rural 
+                          </button>       
+                        </form>
+                     @endif   
+                    @endif   
+                    </div>
         @endif
     @endforeach
 </div>
@@ -190,14 +208,25 @@
 
     }
     
-    function EliminarRadio($radio){
+    function EliminarRadio($radio, $localidad){
      
-
+      var newLine = "\r\n"
+        var message = "1. Eliminar " + $radio +  " , " +$localidad + " de la tabla radio_localidad ";
+        message += newLine;
+        message += "2. Buscar en qué esquemas se encuentra el radio " + $radio + " y reportar que se eliminará de todos ellos";
+        message += newLine;
+        message += "3. borrar el radio de la tabla radio ";
+        message += newLine;
+              
+        alert(message);
+        
+        /*
         message = "está seguro que desea eliminar el radio {{$radio->id}} ?";
         consult = confirm(message);
         if ((consult)){
           $("#EliminarRadio").submit();
-        }
+        } 
+        */
     }     
   
     function CambiarTipodeRadio(){
