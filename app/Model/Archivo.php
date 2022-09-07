@@ -35,6 +35,7 @@ class Archivo extends Model
 
 
     // Funcion para cargar información de archivo en la base de datos.
+<<<<<<< HEAD
     public static function cargar($request_file, $user, $tipo=null){
     $original_extension = strtolower($request_file->getClientOriginalExtension());
     $guess_extension = strtolower($request_file->guessClientExtension());
@@ -51,6 +52,39 @@ class Archivo extends Model
           'checksum'=> md5_file($request_file->getRealPath()),
           'size' => $request_file->getClientSize(),
           'mime' => $request_file->getClientMimeType()
+=======
+    public static function cargar($request_file, $user, $tipo=null,
+                                  $shape_files = []) {
+        $original_extension = strtolower($request_file->getClientOriginalExtension());
+        $guess_extension = strtolower($request_file->guessClientExtension());
+        $original_name = $request_file->getClientOriginalName();
+        $random_name= 't_'.$request_file->hashName();
+        $random_name = substr($random_name,0,strpos($random_name,'.'));
+        $file_storage = $request_file->storeAs('segmentador', $random_name.'.'.$request_file->getClientOriginalExtension());
+        if ($tipo == 'shape'){
+          if ($shape_files != null){
+            foreach ($shape_files as $shape_file) {
+                //Almacenar archivos asociados a shapefile con igual nombre
+                //según extensión.
+              if ($shape_file != null){
+                $extension = strtolower($shape_file->getClientOriginalExtension());
+                $data_files[] = $shape_file->storeAs('segmentador', 
+                                             $random_name.'.'.$extension);
+               };
+             }
+          }
+        }
+        $file_storage = $request_file->storeAs('segmentador', $random_name.'.'.$request_file->getClientOriginalExtension());
+        return self::create([
+            'user_id' => $user->id,
+            'nombre_original' => $original_name,
+            'nombre' => $file_storage,
+            'tabla' => $random_name,
+            'tipo' => ($guess_extension!='bin' and $guess_extension!='')?$guess_extension:$original_extension,
+            'checksum'=> md5_file($request_file->getRealPath()),
+            'size' => $request_file->getSize(),
+            'mime' => $request_file->getClientMimeType()
+>>>>>>> b7a95089fe8c183e9aae6739dffec12da59ea310
         ]);
     }
 
@@ -78,8 +112,19 @@ class Archivo extends Model
                 }
             } elseif ($this->tipo == 'e00' or $this->tipo == 'bin') {
                 return $this->procesarGeomE00();
+<<<<<<< HEAD
+=======
+            } elseif ($this->tipo == 'pxrad/dbf') {
+                return $this->procesarPxRad();
+            } elseif ($this->tipo == 'shp') {
+                return $this->procesarGeomSHP();
+            } elseif ($this->tipo == 'shp/arc') {
+                return $this->procesarGeomSHP();
+            } elseif ($this->tipo == 'shp/lab') {
+                return $this->procesarGeomSHP('lab');
+>>>>>>> b7a95089fe8c183e9aae6739dffec12da59ea310
             } else {
-                flash('No se encontro qué hacer para procesar '.$this->nombre_original)->warning();
+                flash('No se encontro qué hacer para procesar '.$this->nombre_original.'. tipo = '.$this->tipo)->warning();
                 return false;
             }
         } else {
@@ -135,6 +180,7 @@ class Archivo extends Model
         }
     }
 
+<<<<<<< HEAD
     public function procesarGeomSHP(){
           flash('Procesando Geom . TODO: No implementado!')->error();
  
@@ -152,6 +198,61 @@ class Archivo extends Model
            $processOGR2OGR->setTimeout(1800);
       $this->procesado=false;
       $this->save();
+=======
+    public function procesarGeomSHP($capa = 'arc') {
+        flash('Procesando Geom . TODO: No implementado!')->warning();
+        $mensajes = '';
+        $processOGR2OGR = Process::fromShellCommandline(
+            '(/usr/bin/ogr2ogr -f \
+            "PostgreSQL" PG:"dbname=$db host=$host user=$user port=$port \
+            active_schema=e$esquema password=$pass" --config PG_USE_COPY YES \
+            -lco OVERWRITE=YES --config OGR_TRUNCATE YES -dsco \
+            PRELUDE_STATEMENTS="SET client_encoding TO latin1;CREATE SCHEMA \
+            IF NOT EXISTS e$esquema;" -dsco active_schema=e$esquema -lco \
+            PRECISION=NO -lco SCHEMA=e$esquema \
+            -nln $capa \
+            -skipfailures \
+            -overwrite $file )'
+        );
+        $processOGR2OGR->setTimeout(1800);
+        
+        //Cargo etiquetas
+        try{
+            $processOGR2OGR->run(null,[
+                'capa'=>$capa,
+                'epsg'=> $this->epsg_def,
+                'file' => storage_path().'/app/'.$this->nombre,
+                'esquema'=>'_'.$this->tabla,
+                'encoding'=>'cp1252',
+                'db'=>Config::get('database.connections.pgsql.database'),
+                'host'=>Config::get('database.connections.pgsql.host'),
+                'user'=>Config::get('database.connections.pgsql.username'),
+                'pass'=>Config::get('database.connections.pgsql.password'),
+                'port'=>Config::get('database.connections.pgsql.port')
+            ]);
+            $mensajes.='<br />'.$processOGR2OGR->getErrorOutput().'<br />'.$processOGR2OGR->getOutput();
+            flash($mensajes)->warning();
+
+            $this->procesado=true;
+        } catch (ProcessFailedException $exception) {
+            Log::error($processOGR2OGR->getErrorOutput());
+            flash('Error Importando Shape '.$this->nombre_original)->info();
+            $this->procesado=false;
+            return false;
+        } catch (RuntimeException $exception) {
+            Log::error($processOGR2OGR-->getErrorOutput().$exception);
+            flash('Error Importando Runtime Shape '.$this->nombre_original)->info();
+            $this->procesado=false;
+            return false;
+        } catch(ProcessTimedOutException $exception){
+            Log::error($processOGR2OGR->getErrorOutput().$exception);
+            flash('Se agotó el tiempo Importando Shape de... etiquetas '.$this->nombre_original)->info();
+            return false;
+        }
+        $this->procesado=false;
+        $this->save();
+    }
+>>>>>>> b7a95089fe8c183e9aae6739dffec12da59ea310
 
            }
     public function procesarGeomE00(){
