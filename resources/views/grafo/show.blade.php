@@ -3,6 +3,16 @@
 
 <div class = "row center"><div class = "col-lg-12 text-center">
 <h4><a href = "{{ url("/aglo/{$aglomerado->id}") }}" > ({{ $aglomerado->codigo}}) {{ $aglomerado->nombre}}</a></h4>
+@if ($edicion==false)
+  <a href="{{route('ver-grafo-edit', [$localidad->id, $radio->id])}}" class="btn btn-primary">
+    {{ __('Editar') }}
+  </a>
+@else
+  <a href="{{route('ver-grafo', [$localidad->id, $radio->id])}}" class="btn btn-primary">
+    {{ __('volver') }}
+  </a>
+
+@endif
 
 <h4>Radio: {{ substr($radio->codigo, 0, 2) }} {{ substr($radio->codigo, 2, 3) }} 
     <b>

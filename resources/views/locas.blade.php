@@ -67,6 +67,7 @@
              <th>Nombre</th>
              <th>Aglomerado</th>
              <th>Cant. Radios</th>
+             
           </tr>
        </thead>
     </table>
@@ -129,6 +130,8 @@
                   { data: 'nombre', name: 'nombre' },
                   { data: 'aglomerado', name: 'aglomerado' },
                   { searchable: false, data: 'radios_count', name: 'radios_count' }
+                
+                
                ],
       });
 
