@@ -1,30 +1,79 @@
 @extends('layouts.app')
 @section('content')
-<div class="row center"><div class="col-lg-12 text-center">
-<h4><a href="{{ url("/aglo/{$aglomerado->id}") }}" > ({{ $aglomerado->codigo}}) {{ $aglomerado->nombre}}</a></h4>
+
+<div class = "row center"><div class = "col-lg-12 text-center">
+<h4><a href = "{{ url("/aglo/{$aglomerado->id}") }}" > ({{ $aglomerado->codigo}}) {{ $aglomerado->nombre}}</a></h4>
+
+<h4>Radio: {{ substr($radio->codigo, 0, 2) }} {{ substr($radio->codigo, 2, 3) }} 
+    <b>
+        {{ substr($radio->codigo, 5, 2) }} {{ substr($radio->codigo, 7, 2) }}
+    </b>
+    <form action="/radio/{{$radio->id}}" id="EliminarRadio" method="DELETE">  
+        @csrf
+        @if($radio->localidades->count() == 1)
+          @foreach ($radio->localidades->sortBy('codigo') as $loc)
+          @endforeach
+        <button type="button" onclick="EliminarRadio({{$radio->codigo}}, {{$loc->codigo}} )" class="btn btn-danger">
+            Eliminar Radio 
+        </button>
+        @endif
+    </form>
+</h4>
+
+@if($radio->tipo)	
+    <p class = "text-center">({{ $radio->tipo->nombre }}) {{ $radio->tipo->descripcion }} 
+    <form action="/radio/{{$radio->id}}" id="formeditradio" method="POST">   
+        @csrf
+        @if($radio->tipo->nombre == "M")
+           <input type="hidden" value='U' name='tipo_nuevo'>
+           <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Cambiar a Urbano </button>
+         @elseif($radio->tipo->nombre == "U") 
+           <input type="hidden" value='M' name='tipo_nuevo'>
+           <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Cambiar a Mixto </button>
+        @endif              
+    </form>
+    </p>    
+@endif
+
 <h5>
+<div class = "d-flex justify-content-around" >  
+
 @foreach ($radio->localidades->sortBy('codigo') as $loc)
-@if ($loc and substr($loc->codigo,5,3)!='000')
-<a 
-@if ( isSet($localidad) and $loc->id==$localidad->id ) 
-    style="
-        color: #dd8a32;
-      	text-decoration: crimson ;
-      	font-weight: bolder;
-        font-size: 1.2rem;
-      "
-@endif
-href="{{ url("/localidad/{$loc->id}") }}" > ({{
-$loc->codigo}}) {{ $loc->nombre}}</a>
-@else
-  <i>(parte urbana)</i>
-@endif
-@endforeach
+  
+        @if ($loc and substr($loc->codigo,5,3) != '000')
+        <div> 
+                <a 
+                    @if ( $loc->id == $localidad->id ) 
+                      style = "
+                      color: #dd8a32;
+                      text-decoration: crimson;
+                      font-weight: bolder;
+                      font-size: 1.2rem;
+                      "
+                    @endif
+                    href = "{{ url("/localidad/{$loc->id}") }}" > 
+                    ({{$loc->codigo}}) {{ $loc->nombre}}
+                </a>
+                    @if ($loc->id !== $localidad->id)
+                    <form action="/localidad/{{$loc->id}}" id="eliminarelacionlocalidad" onsubmit="EliminarRelacionLocalidad({{$radio->codigo}}, {{$loc->codigo}})"  method="POST">   
+                      @csrf
+                      <input type="hidden" value="{{$radio->id}}" name='radio_id'>
+                      <button type="submit" class="btn btn-danger" data-toggle="modal" >
+                          Eliminar Relacion con Localidad
+                      </button>       
+                    </form>
+                    @endif
+        </div>       
+        @endif
+    @endforeach
+</div>
 </h5>
-<h4>Radio: {{ substr($radio->codigo, 0, 2) }} {{ substr($radio->codigo, 2, 3) }} <b>{{ substr($radio->codigo, 5, 2) }} {{ substr($radio->codigo, 7, 2) }}</b></h4>
-@if($radio->tipo)	<p class="text-center">({{ $radio->tipo->nombre }}) {{ $radio->tipo->descripcion }}</p> @endif
+
+  
 @if($radio->viviendas)	<p class="text-center">Con {{ $radio->viviendas }} viviendas.</p> @endif
-</div></div>
+
+</div>
+</div>
   <div class="row">
     </div>
 </div>
@@ -32,13 +81,7 @@ $loc->codigo}}) {{ $loc->nombre}}</a>
 @section('content')
 @endsection
 @section('header_scripts')
-<!-- script src="https://unpkg.com/numeric/numeric-1.2.6.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.14.0/cytoscape.min.js"></script>
-<script src="https://unpkg.com/layout-base/layout-base.js"></script>
-<script src="https://unpkg.com/cose-base/cose-base.js"></script>
-<script src="/js/cytoscape-fcose.js"></script>
-<script src="/js/cytoscape-cola.js"></script>
-<script src="/js/cola.min.js"></script -->
+
 <style>
 #grafo_cy {
   width: 480px;
@@ -58,26 +101,26 @@ $loc->codigo}}) {{ $loc->nombre}}</a>
 </style>
 @endsection
 @section('content_main')
-<div class="container-xl" >
-    <div class="no-gutters row ">
-    @forelse ($segmentacion_data_listado as $segmento)
-      @if($loop->first)
-        <div class="no-gutters row ">
-           Se encontraron {{ $loop->count }} segmentos.
-	</div>
-       <div class="table">
-        <div class="row ">
-            <div class="col-sm-1 text-center border"> Seg </div>
-            <div class="col-sm-10 text-center border"> Descripción </div>
-            <div class="col-sm-1 text-center border"> Viviendas </div>
-	</div>
-      @endif
-        <div class="row border">
-        <div class="col-sm-1 ">{{ $segmento->seg }}</div>
-        <div class="col-sm-10 ">{!! str_replace(". Manzana ",".<br/>Manzana ",
+<div class = "container-xl" >
+    <div class = "no-gutters row ">
+        @forelse ($segmentacion_data_listado as $segmento)
+            @if($loop->first)
+                <div class = "no-gutters row ">
+                    Se encontraron {{ $loop->count }} segmentos.
+	              </div>
+                <div class = "table">
+                <div class = "row ">
+                <div class = "col-sm-1 text-center border"> Seg </div>
+                <div class = "col-sm-10 text-center border"> Descripción </div>
+                <div class = "col-sm-1 text-center border"> Viviendas </div>
+	    </div>
+        @endif
+        <div class = "row border">
+        <div class = "col-sm-1 ">{{ $segmento->seg }}</div>
+        <div class = "col-sm-10 ">{!! str_replace(". Manzana ",".<br/>Manzana ",
                                             str_replace(".  ",".<br/>",$segmento->detalle))  !!}</div>
-        <div class="col-sm-1 text-right "><p class="text-right">{{ $segmento->vivs }}</p></div>
-	</div>
+        <div class = "col-sm-1 text-right "><p class = "text-right">{{ $segmento->vivs }}</p></div>
+	  </div>
        @if($loop->last)
        </div>
        @endif
@@ -125,25 +168,57 @@ $loc->codigo}}) {{ $loc->nombre}}</a>
       matrixGroup.setAttributeNS(null, "transform", newMatrix);
     }
 
+    function EliminarRelacionLocalidad($radio,$localidad){
 
-function zoom(scale) {
-  for (var i = 0; i < 4; i++) {
-    transformMatrix[i] *= scale;
-  }
-  transformMatrix[4] += (1 - scale) * centerX;
-  transformMatrix[5] += (1 - scale) * centerY;  
+          var newLine = "\r\n";
+          var message = "Eliminar " + $radio +  " , " +$localidad + " de la tabla radio_localidad ";
+          message += newLine;
+          message += "delete from radio_localidad";
+          message += newLine;
+          message += "where radio_id in (select id from radio where codigo = " + $radio + ")";
+          message += newLine;
+          message += "and localidad_id in (select id from localidad where codigo = " + $localidad + ")";
+          message += newLine;  
+          consulta=confirm(message);
+          return consulta;
 
-  svg.viewBox.baseVal.x*=scale;
-  svg.viewBox.baseVal.y*=scale;
-//  transformMatrix[4] = centerX;
-//  transformMatrix[5] = centerY;
-		        
-  var newMatrix = "matrix(" +  transformMatrix.join(' ') + ")";
-  matrixGroup.setAttributeNS(null, "transform", newMatrix);
-  console.log(svg.getAttributeNS(null, "viewBox").split(" "));
-  console.log(scale);
-  console.log(transformMatrix);
-}
+    }
+    
+    function EliminarRadio($radio){
+     
+
+        message = "está seguro que desea eliminar el radio {{$radio->id}} ?";
+        consult = confirm(message);
+        if ((consult)){
+          $("#EliminarRadio").submit();
+        }
+    }     
+  
+    function CambiarTipodeRadio(){
+      mensaje="desea cambiar el tipo de radio?";
+      if(confirm(mensaje)){
+          $("#formeditradio").submit();
+      } 
+    }
+
+      function zoom(scale) {
+      for (var i = 0; i < 4; i++) {
+        transformMatrix[i] *= scale;
+      }
+      transformMatrix[4] += (1 - scale) * centerX;
+      transformMatrix[5] += (1 - scale) * centerY;  
+
+      svg.viewBox.baseVal.x*=scale;
+      svg.viewBox.baseVal.y*=scale;
+      //  transformMatrix[4] = centerX;
+      //  transformMatrix[5] = centerY;
+              
+      var newMatrix = "matrix(" +  transformMatrix.join(' ') + ")";
+      matrixGroup.setAttributeNS(null, "transform", newMatrix);
+      console.log(svg.getAttributeNS(null, "viewBox").split(" "));
+      console.log(scale);
+      console.log(transformMatrix);
+    }
 
 
     let arrayOfClusterArrays = @json($segmentacion) ;  

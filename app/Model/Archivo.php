@@ -10,7 +10,6 @@ use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\Exception\RuntimeException; 
 use Illuminate\Support\Facades\Config;
 use App\Imports\SegmentosImport;
-use App\Imports\CsvImport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\MyDB;
 use Illuminate\Support\Facades\Log;
@@ -23,7 +22,7 @@ class Archivo extends Model
 {
     protected $primaryKey = 'id';
     protected $fillable = [
-            'user_id', 'nombre_original', 'nombre', 'tipo', 'checksum', 'size', 'mime', 'tabla'
+            'user_id','nombre_original','nombre','tipo','checksum','size','mime','tabla'
     ];
     protected $attributes = [
         'procesado' => false,
@@ -31,7 +30,8 @@ class Archivo extends Model
     ];
 
     //Relación con usuario que subió el archivo.
-    public function user() {
+    public function user()
+    {
         return $this->belongsTo('App\User');
     }
 
@@ -156,9 +156,9 @@ class Archivo extends Model
         if (!$this->procesado or $force) {
             if ($this->tipo == 'csv' or $this->tipo == 'dbf') {
                 if (( strtolower(substr($this->nombre_original, 0, 8)) == 'tablaseg')
-                    or ( strtolower(substr($this->nombre_original, 0, 7))    == 'segpais')
-                    or ( strtolower(substr($this->nombre_original, 0, 21))    == 'tabla_de_segmentacion')
-                    or ( strtolower(substr($this->nombre_original, 0, 14))    == 'segmento_total')
+                    or ( strtolower(substr($this->nombre_original, 0, 7))  == 'segpais')
+                    or ( strtolower(substr($this->nombre_original, 0, 21))  == 'tabla_de_segmentacion')
+                    or ( strtolower(substr($this->nombre_original, 0, 14))  == 'segmento_total')
                 ) {
                     return $this->procesarSegmentos();
                 } elseif ($this->tipo == 'csv') {
@@ -192,50 +192,35 @@ class Archivo extends Model
         }
     }
 
-    public function procesarDBF()
-    {
+    public function procesarC1(){
         if ($this->tipo == 'csv'){
             $mensaje = 'Se Cargo un csv.';
             $import = new CsvImport;
-            $import->delimiter = "|";
             Excel::import($import, storage_path().'/app/'.$this->nombre);
-            $this->procesado=true;
-            $this->save();
-            return true;
-        } elseif ($this->tipo == 'dbf' or $this->tipo='pxrad/dbf' ){
+      $this->procesado=true;
+      $this->save();
+      return true;
+        }elseif ($this->tipo == 'dbf'){
             // Mensaje de subida de DBF.
             flash('Procesando DBF.')->info();
 
-            // Subo DBF con pgdbf a una tabla temporal.
-            $process = Process::fromShellCommandline('pgdbf -s $encoding $dbf_file | psql -h $host -p $port -U $user $db');
+      // Subo DBF con pgdbf a una tabla temporal.
+            $process = Process::fromShellCommandline('pgdbf -s latin1 $c1_dbf_file | psql -h $host -p $port -U $user $db');
             try {
                 $process->run(null, [
-                    'encoding'=>'latin1',
-                    'dbf_file' => storage_path().'/app/'.$this->nombre,
-                    'db'=>Config::get('database.connections.pgsql.database'),
-                    'host'=>Config::get('database.connections.pgsql.host'),
-                    'user'=>Config::get('database.connections.pgsql.username'),
-                    'port'=>Config::get('database.connections.pgsql.port'),
-                    'PGPASSWORD'=>Config::get('database.connections.pgsql.password')]
-                );
-                //    $process->mustRun();
-          // executes after the command finishes
-          if (Str::contains($process->getErrorOutput(),['ERROR'])){
-              $process->run(null, [
-                    'encoding'=>'utf8',
-                    'dbf_file' => storage_path().'/app/'.$this->nombre,
+                    'c1_dbf_file' => storage_path().'/app/'.$this->nombre,
                     'db'=>Config::get('database.connections.pgsql.database'),
                     'host'=>Config::get('database.connections.pgsql.host'),
                     'user'=>Config::get('database.connections.pgsql.username'),
                     'port'=>Config::get('database.connections.pgsql.port'),
                     'PGPASSWORD'=>Config::get('database.connections.pgsql.password')]);
-              Log::warning('Error cargando DBF.',[$process->getOutput(),$process->getErrorOutput()]);
-              if (Str::contains($process->getErrorOutput(),['ERROR'])){
-                  Log::error('Error cargando DBF.',[$process->getOutput(),$process->getErrorOutput()]);
-                  flash('Error cargando DBF. '.$process->getErrorOutput())->important()->error();
-                  return false;
-              }
-          } else {
+                //    $process->mustRun();
+          // executes after the command finishes
+          if (Str::contains($process->getErrorOutput(),['ERROR'])){
+            Log::error('Error cargando C1.',[$process->getOutput(),$process->getErrorOutput()]);
+            flash('Error cargando C1. '.$process->getErrorOutput())->important()->error();
+            return false;
+          }else{
             $this->procesado=true;
             $this->save();
             Log::debug($process->getOutput().$process->getErrorOutput());
@@ -246,7 +231,7 @@ class Archivo extends Model
       } catch (RuntimeException $exception) {
           Log::error($process->getErrorOutput().$exception);
       }
-    } else {
+    }else{
     flash($data['file']['csv_info'] = 'Se Cargo un archivo de formato
          no esperado!')->error()->important();
           $this->procesado=false;
@@ -305,98 +290,95 @@ class Archivo extends Model
         $this->save();
         return $this->procesado;
     }
-
-    public function procesarGeomE00() {
-        flash('Procesando Arcos y Etiquetas (Importando E00.) ')->info();
-        MyDB::createSchema('_'.$this->tabla);
-        $processOGR2OGR = Process::fromShellCommandline(
-            '/usr/bin/ogr2ogr -f "PostgreSQL" \
-            PG:"dbname=$db host=$host user=$user port=$port active_schema=e_$esquema \
-            password=$pass" --config PG_USE_COPY YES -lco OVERWRITE=YES \
-            --config OGR_TRUNCATE YES -dsco PRELUDE_STATEMENTS="SET client_encoding TO $encoding; \
-            CREATE SCHEMA IF NOT EXISTS e_$esquema;" -dsco active_schema=e_$esquema \
-            -lco PRECISION=NO -lco SCHEMA=e_$esquema -s_srs $epsg -t_srs $epsg \
-            -nln $capa -addfields -overwrite $file $capa'
-        );
-        $processOGR2OGR->setTimeout(1800);
-        // -skipfailures
-        //Cargo arcos
-        try {
-            $processOGR2OGR->run(null,[
-                'capa'=>'arc',
-                'epsg'=> $this->epsg_def,
-                'file' => storage_path().'/app/'.$this->nombre,
-                'esquema'=>$this->tabla,
-                'encoding'=>'cp1252',
-                'db'=>Config::get('database.connections.pgsql.database'),
-                'host'=>Config::get('database.connections.pgsql.host'),
-                'user'=>Config::get('database.connections.pgsql.username'),
-                'pass'=>Config::get('database.connections.pgsql.password'),
-                'port'=>Config::get('database.connections.pgsql.port')
-            ]);
-            $mensajes=$processOGR2OGR->getErrorOutput().'<br />'.$processOGR2OGR->getOutput();
-        } catch (ProcessFailedException $exception) {
-            Log::error($processOGR2OGR->getErrorOutput());
-            flash('Error Importando Falló E00 '.$this->nombre_original)->info();
-            return false;
-        } catch (RuntimeException $exception) {
-            Log::error($processOGR2OGR->getErrorOutput().$exception);
-            flash('Error Importando Runtime E00 '.$this->nombre_original)->info();
-            return false;
-        } catch(ProcessTimedOutException $exception){
-            Log::error($processOGR2OGR->getErrorOutput().$exception);
-            flash('Se agotó el tiempo Importando E00 de arcos '.$this->nombre_original)->info();
-            return false;
-        }
-        //Cargo etiquetas
-        try{
-            $processOGR2OGR->run(null,[
-                'capa'=>'lab',
-                'epsg'=> $this->epsg_def,
-                'file' => storage_path().'/app/'.$this->nombre,
-                'esquema'=>$this->tabla,
-                'encoding'=>'cp1252',
-                'db'=>Config::get('database.connections.pgsql.database'),
-                'host'=>Config::get('database.connections.pgsql.host'),
-                'user'=>Config::get('database.connections.pgsql.username'),
-                'pass'=>Config::get('database.connections.pgsql.password'),
-                'port'=>Config::get('database.connections.pgsql.port')
-            ]);
-            $mensajes.='<br />'.$processOGR2OGR->getErrorOutput().'<br />'.$processOGR2OGR->getOutput();
-            $this->procesado=true;
-        } catch (ProcessFailedException $exception) {
-            Log::error($processOGR2OGR->getErrorOutput());
-            flash('Error Importando Falló E00 '.$this->nombre_original)->info();
-            $this->procesado=false;
-            return false;
-        } catch (RuntimeException $exception) {
-            Log::error($processOGR2OGR-->getErrorOutput().$exception);
-            flash('Error Importando Runtime E00 '.$this->nombre_original)->info();
-            $this->procesado=false;
-            return false;
-        } catch(ProcessTimedOutException $exception){
-            Log::error($processOGR2OGR->getErrorOutput().$exception);
-            flash('Se agotó el tiempo Importando E00 de etiquetas '.$this->nombre_original)->info();
-            return false;
-        }
-        $this->save();
-        return $mensajes;
+        
+    public function procesarGeomE00(){
+          flash('Procesando Arcos y Etiquetas (Importando E00.) ')->info();
+          MyDB::createSchema('_'.$this->tabla);
+          $processOGR2OGR = Process::fromShellCommandline('/usr/bin/ogr2ogr -f "PostgreSQL" \
+                     PG:"dbname=$db host=$host user=$user port=$port active_schema=e_$esquema \
+                     password=$pass" --config PG_USE_COPY YES -lco OVERWRITE=YES \
+                     --config OGR_TRUNCATE YES -dsco PRELUDE_STATEMENTS="SET client_encoding TO $encoding; \
+                     CREATE SCHEMA IF NOT EXISTS e_$esquema;" -dsco active_schema=e_$esquema \
+                     -lco PRECISION=NO -lco SCHEMA=e_$esquema -s_srs $epsg -t_srs $epsg \
+                     -nln $capa -addfields -overwrite $file $capa');
+           $processOGR2OGR->setTimeout(1800);
+                     // -skipfailures
+    //Cargo arcos
+    try{
+        $processOGR2OGR->run(null,
+         ['capa'=>'arc',
+          'epsg'=> $this->epsg_def,
+          'file' => storage_path().'/app/'.$this->nombre,
+          'esquema'=>$this->tabla,
+          'encoding'=>'cp1252',
+          'db'=>Config::get('database.connections.pgsql.database'),
+          'host'=>Config::get('database.connections.pgsql.host'),
+          'user'=>Config::get('database.connections.pgsql.username'),
+          'pass'=>Config::get('database.connections.pgsql.password'),
+          'port'=>Config::get('database.connections.pgsql.port')]);
+        $mensajes=$processOGR2OGR->getErrorOutput().'<br />'.$processOGR2OGR->getOutput();
+     } catch (ProcessFailedException $exception) {
+         Log::error($processOGR2OGR->getErrorOutput());
+         flash('Error Importando Falló E00 '.$this->nombre_original)->info();
+         return false;
+     } catch (RuntimeException $exception) {
+         Log::error($processOGR2OGR->getErrorOutput().$exception);
+         flash('Error Importando Runtime E00 '.$this->nombre_original)->info();
+         return false;
+     } catch(ProcessTimedOutException $exception){
+         Log::error($processOGR2OGR->getErrorOutput().$exception);
+         flash('Se agotó el tiempo Importando E00 de arcos '.$this->nombre_original)->info();
+         return false;
+      }
+    //Cargo etiquetas
+    try{
+           $processOGR2OGR->run(null,
+            ['capa'=>'lab',
+             'epsg'=> $this->epsg_def,
+             'file' => storage_path().'/app/'.$this->nombre,
+             'esquema'=>$this->tabla,
+             'encoding'=>'cp1252',
+             'db'=>Config::get('database.connections.pgsql.database'),
+             'host'=>Config::get('database.connections.pgsql.host'),
+             'user'=>Config::get('database.connections.pgsql.username'),
+             'pass'=>Config::get('database.connections.pgsql.password'),
+             'port'=>Config::get('database.connections.pgsql.port')]);
+              $mensajes.='<br />'.$processOGR2OGR->getErrorOutput().'<br />'.$processOGR2OGR->getOutput();
+        $this->procesado=true;
+     } catch (ProcessFailedException $exception) {
+        Log::error($processOGR2OGR->getErrorOutput());
+        flash('Error Importando Falló E00 '.$this->nombre_original)->info();
+        $this->procesado=false;
+        return false;
+     } catch (RuntimeException $exception) {
+        Log::error($processOGR2OGR-->getErrorOutput().$exception);
+        flash('Error Importando Runtime E00 '.$this->nombre_original)->info();
+        $this->procesado=false;
+        return false;
+     } catch(ProcessTimedOutException $exception){
+        Log::error($processOGR2OGR->getErrorOutput().$exception);
+        flash('Se agotó el tiempo Importando E00 de etiquetas '.$this->nombre_original)->info();
+        return false;
+     }
+     $this->save();
+     return $mensajes;
     }
 
     // Copia o Mueve listados de una C1 al esquema de las localidades encontradas
     // Retorna Array $ppdddlls con codigos de localidades
-    public function moverData() {
-        // Busca dentro de la tabla las localidades
-        $ppdddllls = MyDB::getLocs($this->tabla,'public');
-        $count = 0;
-        foreach ($ppdddllls as $ppdddlll) {
+    public function moverData(){
+       // Busca dentro de la tabla las localidades
+       $ppdddllls = MyDB::getLocs($this->tabla,'public');
+       $count = 0;
+           foreach ($ppdddllls as $ppdddlll){
             flash('Se encontró loc en C1: '.$ppdddlll->link);
             MyDB::createSchema($ppdddlll->link);
-            if (substr($ppdddlll->link, 0, 2) == '02') {
+
+            if (substr($ppdddlll->link,0,2)=='02'){
                 flash($data['file']['caba']='Se detecto CABA: '.$ppdddlll->link);
                 $codigo_esquema=$ppdddlll->link;
                 $segmenta_auto=true;
-            } elseif (substr($ppdddlll->link, 0, 2) == '06') {
+            }elseif (substr($ppdddlll->link,0,2)=='06'){
                 flash($data['file']['data']='Se detecto PBA: '.$ppdddlll->link);
                 //$codigo_esquema=substr($ppdddlll->link, 0, 5);
                 // Se utiliza el código de localidad también para PBA
@@ -406,17 +388,18 @@ class Archivo extends Model
             }
             MyDB::moverDBF(storage_path().'/app/'.$this->nombre,$codigo_esquema,$ppdddlll->link);
             $count++;
-        }
-        Log::debug('C1 se copió en '.$count.' esquemas');
-        MyDB::borrarTabla($this->tabla);
-        return $ppdddllls;
+           }
+           Log::debug('C1 se copió en '.$count.' esquemas');
+           MyDB::borrarTabla($this->tabla);
+           return $ppdddllls;
     }
+
 
     // Pasa data geo, arcos y labels al esquema de las localidades encontradas
     // Retorna Array $ppdddlls con codigos de localidades
     // TODO: Separar o manejar arc or lab x separado
     public function pasarData(){
-        // Leo dentro de la tabla de etiquetas la/s localidades
+       // Leo dentro de la tabla de etiquetas la/s localidades
         $ppdddllls=MyDB::getLocs('lab','e_'.$this->tabla);
         $count=0;
         // Si no encuentro localidades en lab.
@@ -439,7 +422,7 @@ class Archivo extends Model
             }
             
             MyDB::limpiar_esquema('e_'.$this->tabla);
-            return $coddeptos;
+           return $coddeptos;
         } else {
             // Para cada localidad encontrada
             // creo esquema y copio datos a esquema según codigo.
@@ -453,12 +436,13 @@ class Archivo extends Model
             flash('Se encontraron '.$count.' localidaes en la cartografía');
             MyDB::limpiar_esquema('e_'.$this->tabla);
             return $ppdddllls;
-        }
+       }
     }
 
     public function infoData(){
-         return MyDB::infoDBF('listado',$this->tabla);
+       return MyDB::infoDBF('listado',$this->tabla);
     }
+
 
     // Archivos csv con tabla de segmentación generada en modo manual.
     // x provincia juntando /y corrigiendo) segmentación Urbana y Urbano-Mixta con

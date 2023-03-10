@@ -14,7 +14,7 @@ use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\RegistersEventListeners;
-use Illuminate\Support\Facades\Log;
+
 
 class CsvImport implements ToModel,WithHeadingRow, WithBatchInserts, WithChunkReading, ShouldQueue, WithCustomCsvSettings, WithEvents //, WithProgressBar
 {
@@ -61,14 +61,14 @@ class CsvImport implements ToModel,WithHeadingRow, WithBatchInserts, WithChunkRe
 'lado' => $row['lado'],
 'nro_inicia' => $row['nro_inicia'],
 'nro_final' => $row['nro_final'],
-'orden_reco' => $row['orden_reco'] ?? $row['orden_recorrido_viv'] ?? $row['orden_rec2'],
-'nrolist' => $row['nrolist'] ?? $row['nro_listad'] ?? $row['nro_listado'] ?? 0,
+'orden_reco' => $row['orden_reco'] ?? $row['orden_recorrido_viv'],
+'nrolist' => $row['nrolist'] ?? $row['nro_listado'],
 'ccalle' => $row['ccalle'],
 'ncalle' => $row['ncalle'],
 'nrocatastr' => $row['nrocatastr'] ?? $row['nrocatastralredef'] ?? $row['nro_catastral'],
 'piso' => $row['pisoredef'] ?? $row['piso'],
 'casa' => $row['casa'],
-'dptohab' => $row['dptohab'] ?? $row['dpto_habitacion'] ?? $row['dpto_habit'],
+'dptohab' => $row['dptohab'] ?? $row['dpto_habitacion'],
 'sector' => $row['sector'],
 'edificio' => $row['edificio'],
 'entrada' => $row['entrada'],
@@ -82,6 +82,7 @@ class CsvImport implements ToModel,WithHeadingRow, WithBatchInserts, WithChunkRe
 'segmento' => $row['segmento'] ?? null
         ]);
     }
+
 
     public function batchSize(): int
     {
@@ -97,8 +98,7 @@ class CsvImport implements ToModel,WithHeadingRow, WithBatchInserts, WithChunkRe
     {
         return [
             'input_encoding' => 'UTF-8',
-            'delimiter' => '|',
-            'enclosure' => ''
+            'delimiter' => ','
         ];
     }
 
@@ -119,7 +119,7 @@ class CsvImport implements ToModel,WithHeadingRow, WithBatchInserts, WithChunkRe
     public static function afterImport(AfterImport $event)
     {
         //
-	      echo 'Rows: '.$this->rows;
+	echo 'Rows: '.$this->rows;
     }
 
     /**
