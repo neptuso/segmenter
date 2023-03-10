@@ -86,6 +86,7 @@ class Radio extends Model
         // return $this->belongsTo('App\Model\RadioLocalidad','radio_localidad','radio_id','localidad_id');
      }
 
+
      /**
       * Relación con Entidad, un Radio puede estar en varias entidades de varias localidades.
       *

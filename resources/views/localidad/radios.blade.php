@@ -3,6 +3,12 @@
 @section('title', $localidad->nombre )
 
 @section ('content')
+@if(Session::has('info'))
+   <div class="alert alert-success alert-dismissible" role="alert">
+   <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+   {{Session::get('info')}}
+   </div>
+@endif
 <div class="container">
 <div class="row">
   <div class="col-md-6">

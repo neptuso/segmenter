@@ -97,10 +97,10 @@ class RadioController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function destroy(Radio $radio)
-    {
-        dd('esto no elimina, tampoco se muestra, no llega :( ');
-        radio ->delete();
-        return back();
+    {   
+        $id_localidad = $radio->localidades[0]->id;
+        $radio ->delete();
+        return redirect()->route('Ver-Localidad', $id_localidad)->with('info','Se eliminó el radio '. $radio->codigo);
      
     }
 

@@ -34,7 +34,7 @@ class Archivo extends Model
     {
         return $this->belongsTo('App\User');
     }
-
+    
     public function viewers()
     {
        return $this->belongsToMany(User::class, 'file_viewer');
@@ -192,35 +192,50 @@ class Archivo extends Model
         }
     }
 
-    public function procesarC1(){
+    public function procesarDBF()
+    {
         if ($this->tipo == 'csv'){
             $mensaje = 'Se Cargo un csv.';
             $import = new CsvImport;
+            $import->delimiter = "|";
             Excel::import($import, storage_path().'/app/'.$this->nombre);
-      $this->procesado=true;
-      $this->save();
-      return true;
-        }elseif ($this->tipo == 'dbf'){
+            $this->procesado=true;
+            $this->save();
+            return true;
+        } elseif ($this->tipo == 'dbf' or $this->tipo='pxrad/dbf' ){
             // Mensaje de subida de DBF.
             flash('Procesando DBF.')->info();
 
-      // Subo DBF con pgdbf a una tabla temporal.
-            $process = Process::fromShellCommandline('pgdbf -s latin1 $c1_dbf_file | psql -h $host -p $port -U $user $db');
+            // Subo DBF con pgdbf a una tabla temporal.
+            $process = Process::fromShellCommandline('pgdbf -s $encoding $dbf_file | psql -h $host -p $port -U $user $db');
             try {
                 $process->run(null, [
-                    'c1_dbf_file' => storage_path().'/app/'.$this->nombre,
+                    'encoding'=>'latin1',
+                    'dbf_file' => storage_path().'/app/'.$this->nombre,
+                    'db'=>Config::get('database.connections.pgsql.database'),
+                    'host'=>Config::get('database.connections.pgsql.host'),
+                    'user'=>Config::get('database.connections.pgsql.username'),
+                    'port'=>Config::get('database.connections.pgsql.port'),
+                    'PGPASSWORD'=>Config::get('database.connections.pgsql.password')]
+                );
+                //    $process->mustRun();
+          // executes after the command finishes
+          if (Str::contains($process->getErrorOutput(),['ERROR'])){
+              $process->run(null, [
+                    'encoding'=>'utf8',
+                    'dbf_file' => storage_path().'/app/'.$this->nombre,
                     'db'=>Config::get('database.connections.pgsql.database'),
                     'host'=>Config::get('database.connections.pgsql.host'),
                     'user'=>Config::get('database.connections.pgsql.username'),
                     'port'=>Config::get('database.connections.pgsql.port'),
                     'PGPASSWORD'=>Config::get('database.connections.pgsql.password')]);
-                //    $process->mustRun();
-          // executes after the command finishes
-          if (Str::contains($process->getErrorOutput(),['ERROR'])){
-            Log::error('Error cargando C1.',[$process->getOutput(),$process->getErrorOutput()]);
-            flash('Error cargando C1. '.$process->getErrorOutput())->important()->error();
-            return false;
-          }else{
+              Log::warning('Error cargando DBF.',[$process->getOutput(),$process->getErrorOutput()]);
+              if (Str::contains($process->getErrorOutput(),['ERROR'])){
+                  Log::error('Error cargando DBF.',[$process->getOutput(),$process->getErrorOutput()]);
+                  flash('Error cargando DBF. '.$process->getErrorOutput())->important()->error();
+                  return false;
+              }
+          } else {
             $this->procesado=true;
             $this->save();
             Log::debug($process->getOutput().$process->getErrorOutput());
@@ -231,7 +246,7 @@ class Archivo extends Model
       } catch (RuntimeException $exception) {
           Log::error($process->getErrorOutput().$exception);
       }
-    }else{
+    } else {
     flash($data['file']['csv_info'] = 'Se Cargo un archivo de formato
          no esperado!')->error()->important();
           $this->procesado=false;
@@ -241,7 +256,7 @@ class Archivo extends Model
 
     public function procesarGeomSHP($capa = 'arc') {
         MyDB::createSchema('_'.$this->tabla);
-        flash('Procesando Geom desde Shape '.$capa.'...')->warning();
+        flash('Procesando Geom desde Shape en reestructuración, disculpe las molestias, estamos trabajando!')->warning();
         $mensajes = '';
         $processOGR2OGR = Process::fromShellCommandline(
             '(/usr/bin/ogr2ogr -f \
@@ -290,7 +305,7 @@ class Archivo extends Model
         $this->save();
         return $this->procesado;
     }
-        
+
     public function procesarGeomE00(){
           flash('Procesando Arcos y Etiquetas (Importando E00.) ')->info();
           MyDB::createSchema('_'.$this->tabla);

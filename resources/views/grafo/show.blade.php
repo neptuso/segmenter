@@ -8,16 +8,15 @@
     <b>
         {{ substr($radio->codigo, 5, 2) }} {{ substr($radio->codigo, 7, 2) }}
     </b>
-    <form action="/radio/{{$radio->id}}" id="EliminarRadio" method="DELETE">  
-        @csrf
-        @if($radio->localidades->count() == 1)
-          @foreach ($radio->localidades->sortBy('codigo') as $loc)
-          @endforeach
-        <button type="button" onclick="EliminarRadio({{$radio->codigo}}, {{$loc->codigo}} )" class="btn btn-danger">
-            Eliminar Radio 
-        </button>
-        @endif
-    </form>
+      @if($radio->localidades->count() == 1)
+        <form action="/radio/{{$radio->id}}" id="EliminarRadio" method = "POST">
+          @csrf
+          @method('DELETE')
+          <button type="button" onclick="EliminarRadio({{$radio->codigo}})" class="btn btn-danger">
+              Eliminar Radio 
+          </button>
+        </form>
+      @endif
 </h4>
 
 @if($radio->tipo)	
@@ -38,34 +37,32 @@
 <h5>
 <div class = "d-flex justify-content-around" >  
 
-@foreach ($radio->localidades->sortBy('codigo') as $loc)
-  
-        @if ($loc and substr($loc->codigo,5,3) != '000')
-        <div> 
-                <a 
-                    @if ( $loc->id == $localidad->id ) 
-                      style = "
-                      color: #dd8a32;
-                      text-decoration: crimson;
-                      font-weight: bolder;
-                      font-size: 1.2rem;
-                      "
-                    @endif
-                    href = "{{ url("/localidad/{$loc->id}") }}" > 
-                    ({{$loc->codigo}}) {{ $loc->nombre}}
-                </a>
-                    @if ($loc->id !== $localidad->id)
-                    <form action="/localidad/{{$loc->id}}" id="eliminarelacionlocalidad" onsubmit="EliminarRelacionLocalidad({{$radio->codigo}}, {{$loc->codigo}})"  method="POST">   
-                      @csrf
-                      <input type="hidden" value="{{$radio->id}}" name='radio_id'>
-                      <button type="submit" class="btn btn-danger" data-toggle="modal" >
-                          Eliminar Relacion con Localidad
-                      </button>       
-                    </form>
-                    @endif
-        </div>       
-        @endif
-    @endforeach
+  @foreach ($radio->localidades->sortBy('codigo') as $loc)
+    <div> 
+      <a 
+          @if ( $loc->id == $localidad->id ) 
+            style = "
+            color: #dd8a32;
+            text-decoration: crimson;
+            font-weight: bolder;
+            font-size: 1.2rem;
+            "
+          @endif
+          href = "{{ url("/localidad/{$loc->id}") }}" > 
+          ({{$loc->codigo}}) {{ $loc->nombre}}
+      </a>
+          @if ($loc->id !== $localidad->id)
+          <form action="/localidad/{{$loc->id}}" id="eliminarelacionlocalidad" method="POST">   
+            @csrf
+            <input type="hidden" value="{{$radio->id}}" name='radio_id'>
+            <!-- El boton de abajo debería ser type button para que abra la consulta del onclick pero por alguna razon no funciona -->
+            <button type="submit" onclick="EliminarRelacionLocalidad({{$radio->codigo}}, {{$loc->codigo}})" class="btn btn-danger" id="eliminarelacion">
+                Eliminar Relacion con Localidad
+            </button>
+          </form>
+          @endif
+    </div>       
+  @endforeach
 </div>
 </h5>
 
@@ -168,34 +165,22 @@
       matrixGroup.setAttributeNS(null, "transform", newMatrix);
     }
 
-    function EliminarRelacionLocalidad($radio,$localidad){
-
-          var newLine = "\r\n";
-          var message = "Eliminar " + $radio +  " , " +$localidad + " de la tabla radio_localidad ";
-          message += newLine;
-          message += "delete from radio_localidad";
-          message += newLine;
-          message += "where radio_id in (select id from radio where codigo = " + $radio + ")";
-          message += newLine;
-          message += "and localidad_id in (select id from localidad where codigo = " + $localidad + ")";
-          message += newLine;  
-          consulta=confirm(message);
-          return consulta;
-
+    function EliminarRelacionLocalidad($radio,$loc){
+      message = "Está seguro que desea desvincular el radio cod {{$radio->codigo}} (id: {{$radio->id}}) de la localidad cod {{$loc->codigo}} (id: {{$loc->id}})?";
+      if (confirm(mensaje)){
+        $("#eliminarelacionlocalidad").submit();
+      }
     }
     
     function EliminarRadio($radio){
-     
-
-        message = "está seguro que desea eliminar el radio {{$radio->id}} ?";
-        consult = confirm(message);
-        if ((consult)){
+        message = "Está seguro que desea eliminar el radio cod {{$radio->codigo}} (id: {{$radio->id}}) ?";
+        if (confirm(mensaje)){
           $("#EliminarRadio").submit();
         }
     }     
   
     function CambiarTipodeRadio(){
-      mensaje="desea cambiar el tipo de radio?";
+      mensaje="Desea cambiar el tipo de radio?";
       if(confirm(mensaje)){
           $("#formeditradio").submit();
       } 
