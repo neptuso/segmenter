@@ -8,29 +8,34 @@
     <b>
         {{ substr($radio->codigo, 5, 2) }} {{ substr($radio->codigo, 7, 2) }}
     </b>
-      @if($radio->localidades->count() == 1)
-        <form action="/radio/{{$radio->id}}" id="EliminarRadio" method = "POST">
-          @csrf
-          @method('DELETE')
-          <button type="button" onclick="EliminarRadio({{$radio->codigo}})" class="btn btn-danger">
-              Eliminar Radio 
-          </button>
-        </form>
-      @endif
+      @can('Eliminar Radio')
+        @if($radio->localidades->count() == 1)
+          <form action="/radio/{{$radio->id}}" id="EliminarRadio" method = "POST">
+            @csrf
+            @method('DELETE')
+            <!-- El boton de abajo debería ser type button para que abra la consulta del onclick pero por alguna razon no funciona -->
+            <button type="submit" onclick="EliminarRadio({{$radio->codigo}})" class="btn btn-danger">
+                Eliminar Radio 
+            </button>
+          </form>
+        @endif
+      @endcan
 </h4>
 
 @if($radio->tipo)	
     <p class = "text-center">({{ $radio->tipo->nombre }}) {{ $radio->tipo->descripcion }} 
-    <form action="/radio/{{$radio->id}}" id="formeditradio" method="POST">   
-        @csrf
-        @if($radio->tipo->nombre == "M")
-           <input type="hidden" value='U' name='tipo_nuevo'>
-           <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Cambiar a Urbano </button>
-         @elseif($radio->tipo->nombre == "U") 
-           <input type="hidden" value='M' name='tipo_nuevo'>
-           <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Cambiar a Mixto </button>
-        @endif              
-    </form>
+    @can('Modificar Tipo Radio')
+      <form action="/radio/{{$radio->id}}" id="formeditradio" method="POST">   
+          @csrf
+          @if($radio->tipo->nombre == "M")
+            <input type="hidden" value='U' name='tipo_nuevo'>
+            <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Cambiar a Urbano </button>
+          @elseif($radio->tipo->nombre == "U") 
+            <input type="hidden" value='M' name='tipo_nuevo'>
+            <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Cambiar a Mixto </button>
+          @endif              
+      </form>
+    @endcan
     </p>    
 @endif
 
@@ -51,6 +56,7 @@
           href = "{{ url("/localidad/{$loc->id}") }}" > 
           ({{$loc->codigo}}) {{ $loc->nombre}}
       </a>
+        @can('Desvincular Radio Localidad')
           @if ($loc->id !== $localidad->id)
           <form action="/localidad/{{$loc->id}}" id="eliminarelacionlocalidad" method="POST">   
             @csrf
@@ -61,6 +67,7 @@
             </button>
           </form>
           @endif
+        @endcan
     </div>       
   @endforeach
 </div>
