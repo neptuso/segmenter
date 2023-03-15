@@ -140,7 +140,7 @@ class RadioController extends Controller
         $radio = Radio::findorfail($radio_id);
         $tipoderadio = TipoRadio::where ('id', '=', $radio->tipo_de_radio_id)->first('nombre');
         if ($radio->localidades->count() > 1 and $tipoderadio->nombre == 'M'){
-            flash('No se puede cambiar el tipo de radio a urbano dado que contiene más de una localidad');
+            flash('No se puede cambiar el tipo de radio  dado que contiene más de una localidad');
             return back();
         }
         $radio->tipo()->associate(TipoRadio::where('nombre', '=', $request->input('tipo_nuevo'))->first('id'));

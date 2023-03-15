@@ -28,13 +28,19 @@
       <form action="/radio/{{$radio->id}}" id="formeditradio" method="POST">   
           @csrf
           @if($radio->tipo->nombre == "M")
-            <input type="hidden" value='U' name='tipo_nuevo'>
-            <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Cambiar a Urbano </button>
+              <input type="hidden" value='U' name='tipo_nuevo'>
+              <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Cambiar a Urbano </button>
           @elseif($radio->tipo->nombre == "U") 
-            <input type="hidden" value='M' name='tipo_nuevo'>
-            <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Cambiar a Mixto </button>
-          @endif              
-      </form>
+              <input type="hidden" value='R' name='tipo_nuevo'>
+              <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Rural </button>                         
+          @elseif($radio->tipo->nombre == "R")
+              <input type="hidden" value='M' name='tipo_nuevo'>
+              <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Cambiar a Mixto </button>
+          @endif 
+ <!--         <input type="hidden" value='R' name='tipo_nuevo'>
+          <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Rural </button>                         
+-->
+        </form>
     @endcan
     </p>    
 @endif
@@ -187,12 +193,18 @@
     }     
   
     function CambiarTipodeRadio(){
-      mensaje="Desea cambiar el tipo de radio?";
+      mensaje = "Desea cambiar el tipo de radio?";
       if(confirm(mensaje)){
           $("#formeditradio").submit();
       } 
     }
+    function CambiarTipodeRadioaRural(){
+      mensaje = "Cambiar a Rural, no te pregunto";
+      if (confirm(mensaje)){
+        $("#")
+      }
 
+    }
       function zoom(scale) {
       for (var i = 0; i < 4; i++) {
         transformMatrix[i] *= scale;
