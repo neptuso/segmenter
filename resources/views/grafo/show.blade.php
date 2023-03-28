@@ -1,6 +1,7 @@
 @extends('layouts.app')
 @section('content')
 
+<a href = "{{ url("edit/si")}}" id="editmode"> Modo edición</a>
 <div class = "row center"><div class = "col-lg-12 text-center">
 <h4><a href = "{{ url("/aglo/{$aglomerado->id}") }}" > ({{ $aglomerado->codigo}}) {{ $aglomerado->nombre}}</a></h4>
 
@@ -8,41 +9,42 @@
     <b>
         {{ substr($radio->codigo, 5, 2) }} {{ substr($radio->codigo, 7, 2) }}
     </b>
-      @can('Eliminar Radio')
-        @if($radio->localidades->count() == 1)
-          <form action="/radio/{{$radio->id}}" id="EliminarRadio" method = "POST">
-            @csrf
-            @method('DELETE')
-            <!-- El boton de abajo debería ser type button para que abra la consulta del onclick pero por alguna razon no funciona -->
-            <button type="submit" onclick="EliminarRadio({{$radio->codigo}})" class="btn btn-danger">
-                Eliminar Radio 
-            </button>
-          </form>
-        @endif
-      @endcan
+    @if ($verbotones)
+        @can('Eliminar Radio')
+            @if($radio->localidades->count() == 1)
+              <form action="/radio/{{$radio->id}}" id="EliminarRadio" method = "POST">
+                @csrf
+                @method('DELETE')
+                <!-- El boton de abajo debería ser type button para que abra la consulta del onclick pero por alguna razon no funciona -->
+                <button type="submit" onclick="EliminarRadio({{$radio->codigo}})" class="btn btn-danger">
+                    Eliminar Radio 
+                </button>
+              </form>
+            @endif
+        @endcan
+      @endif
 </h4>
 
 @if($radio->tipo)	
-    <p class = "text-center">({{ $radio->tipo->nombre }}) {{ $radio->tipo->descripcion }} 
-    @can('Modificar Tipo Radio')
-      <form action="/radio/{{$radio->id}}" id="formeditradio" method="POST">   
-          @csrf
-          @if($radio->tipo->nombre == "M")
-              <input type="hidden" value='U' name='tipo_nuevo'>
-              <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Cambiar a Urbano </button>
-          @elseif($radio->tipo->nombre == "U") 
-              <input type="hidden" value='R' name='tipo_nuevo'>
-              <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Rural </button>                         
-          @elseif($radio->tipo->nombre == "R")
-              <input type="hidden" value='M' name='tipo_nuevo'>
-              <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Cambiar a Mixto </button>
-          @endif 
- <!--         <input type="hidden" value='R' name='tipo_nuevo'>
-          <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Rural </button>                         
--->
+  <p class = "text-center">({{ $radio->tipo->nombre }}) {{ $radio->tipo->descripcion }} 
+    @if ($verbotones)
+      @can('Modificar Tipo Radio')
+        <form action="/radio/{{$radio->id}}" id="formeditradio" method="POST"> 
+            @csrf
+            @if($radio->tipo->nombre == "M")
+                <input type="hidden" value='U' name='tipo_nuevo'>
+                <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Cambiar a Urbano </button>
+            @elseif($radio->tipo->nombre == "U") 
+                <input type="hidden" value='R' name='tipo_nuevo'>
+                <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Rural </button>                         
+            @elseif($radio->tipo->nombre == "R")
+                <input type="hidden" value='M' name='tipo_nuevo'>
+                <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Cambiar a Mixto </button>
+            @endif
         </form>
-    @endcan
-    </p>    
+      @endcan
+    @endif
+  </p>  
 @endif
 
 <h5>
@@ -64,17 +66,19 @@
       </a>
         @can('Desvincular Radio Localidad')
           @if ($loc->id !== $localidad->id)
-          <form action="/localidad/{{$loc->id}}" id="eliminarelacionlocalidad" method="POST">   
-            @csrf
-            <input type="hidden" value="{{$radio->id}}" name='radio_id'>
-            <!-- El boton de abajo debería ser type button para que abra la consulta del onclick pero por alguna razon no funciona -->
-            <button type="submit" onclick="EliminarRelacionLocalidad({{$radio->codigo}}, {{$loc->codigo}})" class="btn btn-danger" id="eliminarelacion">
-                Eliminar Relacion con Localidad
-            </button>
-          </form>
+            @if($verbotones)
+              <form action="/localidad/{{$loc->id}}" id="eliminarelacionlocalidad" method="POST">   
+                @csrf
+                <input type="hidden" value="{{$radio->id}}" name='radio_id'>
+                <!-- El boton de abajo debería ser type button para que abra la consulta del onclick pero por alguna razon no funciona -->
+                <button type="submit" onclick="EliminarRelacionLocalidad({{$radio->codigo}}, {{$loc->codigo}})" class="btn btn-danger" id="eliminarelacion">
+                    Eliminar Relacion con Localidad
+                </button>
+              </form>
+            @endif
           @endif
         @endcan
-    </div>       
+    </div>      
   @endforeach
 </div>
 </h5>
@@ -179,15 +183,15 @@
     }
 
     function EliminarRelacionLocalidad($radio,$loc){
-      message = "Está seguro que desea desvincular el radio cod {{$radio->codigo}} (id: {{$radio->id}}) de la localidad cod {{$loc->codigo}} (id: {{$loc->id}})?";
-      if (confirm(mensaje)){
+      var message = "Está seguro que desea desvincular el radio cod {{$radio->codigo}} (id: {{$radio->id}}) de la localidad cod {{$loc->codigo}} (id: {{$loc->id}})?";
+      if (confirm(message)){
         $("#eliminarelacionlocalidad").submit();
       }
     }
     
     function EliminarRadio($radio){
-        message = "Está seguro que desea eliminar el radio cod {{$radio->codigo}} (id: {{$radio->id}}) ?";
-        if (confirm(mensaje)){
+        r = "Está seguro que desea eliminar el radio cod {{$radio->codigo}} (id: {{$radio->id}}) ?";
+        if (confirm(r)){
           $("#EliminarRadio").submit();
         }
     }     
@@ -305,5 +309,5 @@
         layout.run();
     }
     ordenar();
-    </script>
+</script>
 @endsection
