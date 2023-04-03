@@ -17,6 +17,7 @@ use Illuminate\Support\Str;
 use App\Exceptions\GeoestadisticaException;
 use App\User;
 use Illuminate\Support\Facades\DB;
+use ZipArchive;
 
 class Archivo extends Model
 {
@@ -50,7 +51,8 @@ class Archivo extends Model
             $checksums[] = $checksum;
             foreach ($shape_files as $shape_file) {
                 // Hay e00 con shapefiles con valor null
-                if ($shape_file != null){
+                if ($shape_file != null and $shape_file != ''){
+                    log::debug($shape_file);
                     $checksums[] =  md5_file($shape_file->getRealPath());
                 }
             }
@@ -106,20 +108,22 @@ class Archivo extends Model
             $random_name= 't_'.$request_file->hashName();
             $random_name = substr($random_name,0,strpos($random_name,'.'));
             $file_storage = $request_file->storeAs('segmentador', $random_name.'.'.$request_file->getClientOriginalExtension());
-            $checksum = self::checksumCalculate($request_file, $shape_files);
+            $size_total = $request_file->getSize();
             if ($tipo == 'shape'){
                 if ($shape_files != null){
                     $data_files[] = null;
                     foreach ($shape_files as $shape_file) {
                         //Almacenar archivos asociados a shapefile con igual nombre
                         //según extensión.
-                        if ($shape_file != null){
+                        if ($shape_file != null and $shape_file != ''){
                             $extension = strtolower($shape_file->getClientOriginalExtension());
                             $data_files[] = $shape_file->storeAs('segmentador', $random_name.'.'.$extension);
+                            $size_total =+ $shape_file->getSize();
                         };
                     }
                 }
             }
+            $checksum = self::checksumCalculate($request_file, $shape_files);
 
             $file = self::create([
                 'user_id' => $user->id,
@@ -128,7 +132,7 @@ class Archivo extends Model
                 'tabla' => $random_name,
                 'tipo' => ($guess_extension!='bin' and $guess_extension!='')?$guess_extension:$original_extension,
                 'checksum'=> $checksum,
-                'size' => $request_file->getSize(),
+                'size' => $size_total,
                 'mime' => $request_file->getClientMimeType()
             ]);
         } else {
@@ -145,11 +149,56 @@ class Archivo extends Model
     // TODO: ver shape de descargar conjunto de archivos.
     public function descargar() {
         flash('Descargando... '.$this->nombre_original);
+
+        if ( $this->isMultiArchivo() ) {
+            return $this->downloadZip();
+        }
         $file = storage_path().'/app/'.$this->nombre;
         $name = 'mandarina_'.time().'_'.$this->nombre_original;
         $headers = ['Content-Type: '.$this->mime];
         return response()->download($file, $name, $headers);
     }
+
+    public function downloadZip()
+    {
+        $zip = new ZipArchive;
+
+        $fileName = 'mandarina_'.time().'_'.$this->nombre_original.'.zip';
+
+        if ($zip->open(public_path($fileName), ZipArchive::CREATE) === TRUE) {
+
+            $files = $this->getArchivosSHP();
+
+            foreach ($files as $key => $value) {
+                try {
+                  $relativeNameInZipFile = $key;
+                  $zip->addFile($value, $relativeNameInZipFile);
+                } catch (ErrorException $e) {
+                  Log::error('No se encontreo el archivo:'.$e->getMessage());
+                  dd($value);
+                }
+            }
+
+            $zip->close();
+        }
+
+        return response()->download(public_path($fileName));
+    }
+
+    public function getArchivosSHP() {
+        $nombre = substr($this->nombre,0,-4);
+        $nombre_original = substr($this->nombre_original,0,-4);
+
+        // genero nombre para cada extension
+        $extensiones = [".shp", ".dbf", ".shx", ".prj"];
+        foreach ($extensiones as $extension) { 
+            $o = storage_path().'/app/'.$nombre . $extension;
+            $key = 'mandarina_'.$nombre_original . $extension;
+            $archivos[$key]= $o;
+        }
+        return $archivos;
+    }
+
 
     public function procesar(bool $force = true)
     {
@@ -536,7 +585,7 @@ class Archivo extends Model
         }
     }
     
-    public function chequearStorage(Archivo $original){
+    public function chequearYBorrarStorage(Archivo $original){
         $copia = $this;
         if(Storage::exists($original->nombre)) {
             # si existe el archivo original entonces elimino la copia
@@ -564,7 +613,7 @@ class Archivo extends Model
         }
 
         # Verifico que existan los archivos originales en el storage
-        $this->chequearStorage($original);
+        $this->chequearYBorrarStorage($original);
         # si es multiarchivo elimino tambien las copias de los demas archivos
         if ($this->ismultiArchivo()){
             $this->buscarYBorrarArchivosSHP($original);
