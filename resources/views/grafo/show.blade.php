@@ -1,7 +1,10 @@
 @extends('layouts.app')
 @section('content')
-
-<a href = "{{ url("edit/si")}}" id="editmode"> Modo edición</a>
+@if ($verbotones)
+  <a href = "{{ url("edit/si")}}" id="editmode"> Apagar modo edición </a>
+@else
+  <a href = "{{ url("edit/si")}}" id="editmode"> Encender modo edición</a>
+@endif
 <div class = "row center"><div class = "col-lg-12 text-center">
 <h4><a href = "{{ url("/aglo/{$aglomerado->id}") }}" > ({{ $aglomerado->codigo}}) {{ $aglomerado->nombre}}</a></h4>
 
@@ -186,6 +189,7 @@
       var message = "Está seguro que desea desvincular el radio cod {{$radio->codigo}} (id: {{$radio->id}}) de la localidad cod {{$loc->codigo}} (id: {{$loc->id}})?";
       if (confirm(message)){
         $("#eliminarelacionlocalidad").submit();
+        //return false;
       }
     }
     
