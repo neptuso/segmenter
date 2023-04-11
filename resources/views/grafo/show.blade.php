@@ -73,8 +73,8 @@
               <form action="/localidad/{{$loc->id}}" id="eliminarelacionlocalidad" method="POST">   
                 @csrf
                 <input type="hidden" value="{{$radio->id}}" name='radio_id'>
-                <!-- El boton de abajo debería ser type button para que abra la consulta del onclick pero por alguna razon no funciona -->
-                <button type="submit" onclick="EliminarRelacionLocalidad({{$radio->codigo}}, {{$loc->codigo}})" class="btn btn-danger" id="eliminarelacion">
+                <button type="button" 
+                  onclick="return EliminarRelacionLocalidad({{$radio->codigo}}, {{$loc->codigo}})" class="btn btn-danger" id="eliminarelacion">
                     Eliminar Relacion con Localidad
                 </button>
               </form>
@@ -189,7 +189,8 @@
       var message = "Está seguro que desea desvincular el radio cod {{$radio->codigo}} (id: {{$radio->id}}) de la localidad cod {{$loc->codigo}} (id: {{$loc->id}})?";
       if (confirm(message)){
         $("#eliminarelacionlocalidad").submit();
-        //return false;
+      } else {
+        return false;
       }
     }
     
